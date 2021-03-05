@@ -1,0 +1,3 @@
+<div id="googlepaycontent" class="tab-pane <isif condition=" ${selectedPaymentInstrument.paymentMethod !== paymentOption.ID}">fade<iselse>active show</iselse></isif>">
+        <isinclude template="checkout/billing/paymentOptions/googlepay" />
+</div>

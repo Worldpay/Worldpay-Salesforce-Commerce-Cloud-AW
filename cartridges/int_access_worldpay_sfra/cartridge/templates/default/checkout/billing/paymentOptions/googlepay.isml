@@ -1,0 +1,32 @@
+<input id="grossPrice" name="grossPrice" type="hidden" value="${pdict.order.totals.grandTotal}"/>
+<input id="currencyCode" name="currencyCode" type="hidden" value="${session.currency.currencyCode}"/>
+<div data-set="0" id="containergpay"></div>
+<isif
+    condition="${'AWPGooglePayMerchantID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.AWPGooglePayMerchantID != ''}">
+    <input id="AWPGooglePayMerchantID" name="AWPGooglePayMerchantID" type="hidden"
+           value="${dw.system.Site.current.preferences.custom.AWPGooglePayMerchantID}"/>
+</isif>
+<isif
+    condition="${'AWPGooglePayEnvironment' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.AWPGooglePayEnvironment != ''}">
+    <input id="AWPGooglePayEnvironment" name="AWPGooglePayEnvironment" type="hidden"
+           value="${dw.system.Site.current.preferences.custom.AWPGooglePayEnvironment}"/>
+</isif>
+<isif
+    condition="${'AWPGoogleMerchantName' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.AWPGoogleMerchantName != ''}">
+    <input id="AWPGoogleMerchantName" name="AWPGoogleMerchantName" type="hidden"
+           value="${dw.system.Site.current.preferences.custom.AWPGoogleMerchantName}"/>
+</isif>
+<isif
+    condition="${'AWPGatewayMerchantId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.AWPGatewayMerchantId != ''}">
+    <input id="AWPGatewayMerchantId" name="AWPGatewayMerchantId" type="hidden"
+           value="${dw.system.Site.current.preferences.custom.AWPGatewayMerchantId}"/>
+</isif>
+<isif
+    condition="${'AWPGatewayMerchantName' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.AWPGatewayMerchantName != ''}">
+    <input id="AWPGatewayMerchantName" name="AWPGatewayMerchantName" type="hidden"
+           value="${dw.system.Site.current.preferences.custom.AWPGatewayMerchantName}"/>
+</isif>
+<script src="${URLUtils.staticURL('/js/apm/googlePay.js')}"></script>
+<script async onload="onGooglePayLoaded()" src="https://pay.google.com/gp/p/js/pay.js"></script>
+<input id="gpaytoken" name="gpaytoken" type="hidden" value=""/>
+<div id="gpayerror"> ${Resource.msg('worldpay.googlepay.error', 'worldpay', null)}</div>

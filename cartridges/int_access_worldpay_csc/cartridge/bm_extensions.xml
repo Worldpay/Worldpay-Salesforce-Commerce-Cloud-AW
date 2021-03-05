@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<extensions xmlns="http://www.demandware.com/xml/bmmodules/2007-12-11"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.demandware.com/xml/bmmodules/2007-12-11 bmext.xsd">
+	
+ <menuaction id="order_cancel" menupath="order" type="CSC" site="true" position="0">
+        <name xml:lang="x-default">Cancel Order</name>
+        <short_description xml:lang="x-default">Cancel Order</short_description>
+        <description xml:lang="x-default">Cancel Order</description>
+        <exec pipeline="CscWorldpay" node="CancelOrder"/>       
+        <sub-pipelines>
+            <pipeline name="CscWorldpay"/>
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+ </menuaction>
+    
+    
+    <menuaction id="order_settle" menupath="order" type="CSC" site="true" position="1">
+        <name xml:lang="x-default">Settle Order</name>
+        <short_description xml:lang="x-default">Settle Order</short_description>
+        <description xml:lang="x-default">Settle Order</description>
+        <exec pipeline="CscWorldpay" node="SettleOrder"/>       
+        <sub-pipelines>
+            <pipeline name="CscWorldpay"/>
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+ </menuaction>
+ 
+     <menuaction id="order_partialsettle" menupath="order" type="CSC" site="true" position="2">
+        <name xml:lang="x-default">Partial Settle Order</name>
+        <short_description xml:lang="x-default">Partial Settle Order</short_description>
+        <description xml:lang="x-default">Partial Settle Order</description>
+        <exec pipeline="CscWorldpay" node="PartialSettleOrder"/>       
+        <sub-pipelines>
+            <pipeline name="CscWorldpay"/>
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+ </menuaction>
+ 
+    <menuaction id="order_refund" menupath="order" type="CSC" site="true" position="3">
+        <name xml:lang="x-default">Refund Order</name>
+        <short_description xml:lang="x-default">Refund Order</short_description>
+        <description xml:lang="x-default">Refund Order</description>
+        <exec pipeline="CscWorldpay" node="RefundOrder"/>       
+        <sub-pipelines>
+            <pipeline name="CscWorldpay"/>
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+ </menuaction>
+ 
+ 
+    <menuaction id="order_partialrefund" menupath="order" type="CSC" site="true" position="4">
+        <name xml:lang="x-default">Partial Refund Order</name>
+        <short_description xml:lang="x-default">Partial Refund Order</short_description>
+        <description xml:lang="x-default">Partial Refund Order</description>
+        <exec pipeline="CscWorldpay" node="PartialRefundOrder"/>       
+        <sub-pipelines>
+            <pipeline name="CscWorldpay"/>
+        </sub-pipelines>
+        <parameters>
+            <parameter name="order_no" value="/order_no"/>
+        </parameters>   
+ </menuaction>
+</extensions>

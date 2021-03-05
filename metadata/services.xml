@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="AWP_3ds">
+        <url>https://try.access.worldpay.com/verifications/customers/3ds</url>
+    </service-credential>
+
+    <service-credential service-credential-id="AWP_CardOnFile">
+        <url>https://try.access.worldpay.com/verifiedTokens/cardOnFile</url>
+    </service-credential>
+
+    <service-credential service-credential-id="AWP_payment">
+        <url>https://try.access.worldpay.com/payments</url>
+    </service-credential>
+
+    <service-credential service-credential-id="AWP_token">
+        <url>https://try.access.worldpay.com/tokens</url>
+    </service-credential>
+
+    <service-credential service-credential-id="oms auth">
+        <url>https://login.salesforce.com/services/oauth2/token</url>
+        <user-id></user-id>
+        <password encrypted="true" encryption-type="common.export"></password>
+        <custom-attributes>
+            <custom-attribute attribute-id="clientid"></custom-attribute>
+            <custom-attribute attribute-id="clientsecret"></custom-attribute>
+        </custom-attributes>
+    </service-credential>
+
+    <service-profile service-profile-id="worldpayprofile">
+        <timeout-millis>30000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>false</cb-enabled>
+        <cb-calls>0</cb-calls>
+        <cb-millis>0</cb-millis>
+    </service-profile>
+
+    <service service-id="int_access_worldpay.http.worldpay.3ds.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>accesswp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>AWP_3ds</credential-id>
+    </service>
+
+    <service service-id="int_access_worldpay.http.worldpay.payment.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>accesswp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>AWP_payment</credential-id>
+    </service>
+
+    <service service-id="int_access_worldpay.http.worldpay.token.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>accesswp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>AWP_token</credential-id>
+    </service>
+
+    <service service-id="int_access_worldpay.http.worldpay.verifiedTokens.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>accesswp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>AWP_CardOnFile</credential-id>
+    </service>
+
+    <service service-id="order.management.auth-MobileFirst">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>oms-connector-auth</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>oms auth</credential-id>
+    </service>
+
+    <service service-id="order.management.rest-MobileFirst">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>oms-connector-auth</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>oms auth</credential-id>
+    </service>
+
+</services>

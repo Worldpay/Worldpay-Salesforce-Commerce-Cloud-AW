@@ -1,0 +1,79 @@
+<style>
+   input {
+      border:none;
+   }
+   a,
+   a label {
+   cursor: pointer;
+   }
+</style>
+<div id="vtokensuccess">
+    <p>${Resource.msg('webcsdk.verifiedtoken.success.message', 'worldpay', null)}</p>
+</div>
+
+<div class="row change-payment">
+    <div class="col">
+        <a class="editbutton">${Resource.msg('webcsdk.verifiedtoken.changepayment', 'worldpay', null)}</a>
+    </div>
+</div>
+
+<section class="cardSDK">
+   <form class="checkout" id="card-form">
+      <div class="row" id="websdkfirstrow">
+        <div class="col-lg-6 col-sm-12">
+            <label class="label label-websdk" for="card-name">${Resource.msg('websdk.form.name', 'worldpay', null)}</label>
+           <section>
+           <input type="text" id= "websdkname" class="no-outline field websdkInput" placeholder="Name"  required>
+            </section>
+         </div>
+        <div class="col-lg-6 col-sm-12">
+            <label class="label label-websdk" for="card-pan">${Resource.msg('websdk.form.pan', 'worldpay', null)}<span class="type"></span></label>
+            <section id="card-pan" class="field websdkInput"></section>
+         </div>
+      </div>
+       <div class="row">
+        <div class="col-lg-6 col-sm-12">
+            <label class="label label-websdk" for="card-expiry">${Resource.msg('websdk.form.expirydate', 'worldpay', null)}</label>
+            <section id="card-expiry" class="field websdkInput"></section>
+        </div>
+      <div class="col-lg-6 col-sm-12">
+            <label class="label label-websdk" for="card-cvv">${Resource.msg('websdk.form.cvv', 'worldpay', null)}</label>
+            <section id="card-cvv" class="field websdkInput"></section>
+         </div>
+     </div>
+	<div class ="wsdk-auth-msg">
+		 <div id = "info-msg" >
+             <small> ${Resource.msg('websdk.auth.messgae', 'worldpay', null)}</small>
+		 </div>
+	</div>
+	  <button id="clear_form_worldpay" class="clear_form_worldpay hide">Clear</button>
+      <button class="submit wsdkpaynow" type="submit" >${Resource.msg('websdk.form.button.paynow', 'worldpay', null)}</button>
+   </form>
+</section>
+<div>
+<isif condition="${pdict.customer.registeredUser}">
+<button id="wesdkcanceladdpayment" onclick="websdkcanceladdcard()" class="btn btn-block btn-outline-primary" type="button">${resources.backToStoredPaymentButton}</button>
+</isif>
+</div>
+<isif
+  condition="${'webCSDKIdentity' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.
+           webCSDKIdentity != ''}">
+  <input id="webCSDKIdentity" type="hidden" name="webCSDKIdentity"
+    value="${dw.system.Site.current.preferences.custom.webCSDKIdentity}" />
+</isif>
+<input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}" />
+<input type="hidden" name="billingFields" value="${pdict.forms.billingForm.attributes}" />
+<input id="isvtokenavailable" type="hidden" name="isvtokenavailable" value="" />
+<div id="novtokenerror">
+    ${Resource.msg('websdk.notoken.error', 'worldpay', null)}
+</div>
+<div id="wpservererror">
+    ${Resource.msg('websdk.server.error', 'worldpay', null)}
+</div>
+<div id="updateLimitCrossed">
+    <span>${Resource.msg('token.updatelimit.crossed', 'worldpay', null)}</span>
+</div>
+<isif condition="${'webCSDKScript' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.
+           webCSDKScript != ''}">
+    <script src="${dw.system.Site.current.preferences.custom.webCSDKScript}"></script>
+</isif>

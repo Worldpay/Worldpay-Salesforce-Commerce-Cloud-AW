@@ -1,0 +1,4 @@
+<iframe id="cardiframe" height="100" data-url="${URLUtils.url('Worldpay-Ddc').abs()}" width="100"
+    style="display:none;"></iframe>
+<input type="hidden" id="authenticate3dsURL" value="${URLUtils.https('Worldpay-Authenticate3ds')}" />
+<input id="payNowUrl" type="hidden" name="payNowUrl" value="${URLUtils.url('Worldpay-GetVerifiedToken')}" />

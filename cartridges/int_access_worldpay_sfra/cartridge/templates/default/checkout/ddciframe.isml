@@ -1,0 +1,10 @@
+<form id="collectionForm" name="devicedata" method="POST" action="${pdict.ddcURL}">
+
+  <input type="hidden" name="Bin" value="${pdict.bin}" />
+
+  <input type="hidden" name="JWT" value="${pdict.JWT}" />
+
+</form>
+<script>
+ document.getElementById('collectionForm').submit();
+</script>

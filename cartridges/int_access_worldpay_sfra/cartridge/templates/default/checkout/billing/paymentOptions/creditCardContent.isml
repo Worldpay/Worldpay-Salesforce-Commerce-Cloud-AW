@@ -1,0 +1,50 @@
+<iscomment>
+    applicable credit cards
+</iscomment>
+<div class="tab-pane <isif condition=" ${!selectedPaymentInstrument.paymentMethod || selectedPaymentInstrument.paymentMethod === paymentOption.ID ||
+                                       selectedPaymentInstrument.paymentMethod === 'CREDIT_CARD'}">active</isif> credit-card-content"
+id="credit-card-content" role="tabpanel">
+
+<iscomment>
+    payment method is credit card
+</iscomment>
+    <input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}"
+       value="CREDIT_CARD"/>
+
+<iscomment>
+    register/authenticated user
+</iscomment>
+<isif condition="${pdict.customer.registeredUser}">
+    <div
+        class="user-payment-instruments container ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}">
+
+        <iscomment>
+            Stored user payments
+        </iscomment>
+        <div
+            class="stored-payments">
+            <isinclude template="checkout/billing/storedPaymentInstruments"/>
+        </div>
+
+        <iscomment>
+            Add new credit card button
+        </iscomment>
+        <div class="row">
+            <button class="btn btn-block add-payment btn-outline-primary"
+                    type="button">${resources.addPaymentButton}</button>
+        </div>
+    </div>
+</isif>
+<fieldset class="credit-card-form ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? 'checkout-hidden' : ''}">
+    <isinclude template="checkout/billing/creditCardForm"/>
+    <isif condition="${ccSecurityModel == 'WEB_SDK'}">
+        <isinclude template="checkout/billing/paymentOptions/webCheckoutSdkContent"/>
+    </isif>
+    <isinclude template="checkout/billing/saveCard"/>
+    <isif condition="${pdict.customer.registeredUser}">
+        <button
+            class="btn btn-block cancel-new-payment btn-outline-primary ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}"
+                type="button">${resources.backToStoredPaymentButton}</button>
+    </isif>
+</fieldset>
+</div>

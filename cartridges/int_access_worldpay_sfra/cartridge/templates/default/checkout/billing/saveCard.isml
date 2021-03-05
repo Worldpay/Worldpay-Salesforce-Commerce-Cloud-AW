@@ -1,0 +1,33 @@
+<isscript>
+            assets.addCss('/css/webCSDK.css');
+</isscript>
+<div class="row worldpaySaveCreditFields">
+    <div class="col">
+        <isif condition="${pdict.CurrentCustomer.authenticated}">
+            <div class="form-check save-credit-card">
+                <label class="form-check-label">
+                    <input type="checkbox" class="form-check-input check" name="${creditFields.saveCard.htmlName}"
+                           value="true" checked /> ${creditFields.saveCard.label}
+                </label>
+            </div>
+            <isif condition="${'AWPshowDisclaimer' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom
+                                 .AWPshowDisclaimer}">
+                <div class="dis_id">
+                    <a id="disclaimer" class="" title="disclaimer" data-toggle="modal"
+                       data-target="#disclaimerModal">
+                        ${Resource.msg('worldpay.disclaimer.link', 'worldpay', null)}
+                    </a>
+                </div>
+            </isif>
+            <div id="cardUpdated">
+                <small>${Resource.msg('token.updatecard.details','worldpay',null)}</small>
+            </div>
+            <div id="cardExists">
+               ${Resource.msg('worldpay.card.exists','worldpay',null)}
+            </div>
+
+                 <isinclude template="checkout/billing/disclaimer"/>
+
+        </isif>
+    </div>
+</div>

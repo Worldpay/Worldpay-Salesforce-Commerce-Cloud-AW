@@ -1,0 +1,105 @@
+<isset name="creditFields" value="${pdict.forms.billingForm.creditCardFields}" scope="page" />
+
+<isset name="hideElement" value="${ccSecurityModel == 'WEB_SDK' ? 'style = display:none;' : '' }" scope="page"/>
+
+<input type="hidden" class="form-control" id="cardType" name="${creditFields.cardType.htmlName}" value="" />
+<div class="row worldpayPreferCardField">
+    <isif condition="${pdict.order.billing.payment.worldPayPreferredCards && pdict.order.billing.payment.worldPayPreferredCards.length > 0 &&
+                     pdict.order.billing.payment.worldpayEnableTokenization}">
+        <div class="col-12">
+            ${resources.worldpayortext}
+        </div>
+    </isif>
+</div>
+
+<div class="row worldpayCreditFields" ${hideElement}>
+    <div class="col-12">
+        <div class="form-group
+            <isif condition=${creditFields.cardOwner.mandatory === true}>required</isif>
+            ${creditFields.cardOwner.htmlName}">
+            <label class="form-control-label" for="cardOwner">${resources.cardOwnerLabel}</label>
+            <div class="card-owner-wrapper">
+                <input type="text" class="form-control cardOwner" id="cardOwner" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                        .length > 0 ? pdict.order.billing.payment.selectedPaymentInstruments[0].owner || '' : ''}" <isprint value=${creditFields.cardOwner.attributes} encoding="off" />
+                />
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row worldpayCreditFields" ${hideElement}>
+    <div class="col-12">
+        <div class="form-group
+            <isif condition=${creditFields.cardNumber.mandatory === true}>required</isif>
+            ${creditFields.cardNumber.htmlName}">
+            <label class="form-control-label" for="cardNumber">${resources.cardNumberLabel}</label>
+            <div class="card-number-wrapper">
+                <input type="text" class="form-control cardNumber" id="cardNumber" value="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                          .length > 0 ? '' : ''}" <isprint value=${creditFields.cardNumber.attributes} encoding="off" />
+                autocomplete="cc-number"
+                >
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row worldpayCreditFields" ${hideElement}>
+    <div class="col-6">
+        <div class="form-group
+            <isif condition=${creditFields.expirationMonth.mandatory === true}>required</isif>
+            ${creditFields.expirationMonth.htmlName}">
+            <label class="form-control-label" for="expirationMonth">${resources.expirationMonthLabel}</label>
+            <select class="form-control expirationMonth custom-select" id="expirationMonth" <isprint
+                value=${creditFields.expirationMonth.attributes} encoding="off" /> autocomplete="cc-exp-month">
+            <isloop items=${creditFields.expirationMonth.options} var="month">
+                <option id="${month.id}" value="${month.htmlValue}" <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                     .length > 0 && month.id == pdict.order.billing.payment.selectedPaymentInstruments[0].expirationMonth}">
+                    selected
+                    </isif> >
+                    ${month.label}
+                </option>
+            </isloop>
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="form-group
+            <isif condition=${creditFields.expirationYear.mandatory === true}>required</isif>
+            ${creditFields.expirationYear.htmlName}">
+            <label class="form-control-label" for="expirationYear">${resources.expirationYearLabel}</label>
+            <select class="form-control expirationYear custom-select" id="expirationYear" <isprint
+                value=${creditFields.expirationYear.attributes} encoding="off" /> autocomplete="cc-exp-year">
+            <option value="${pdict.forms.billingForm.creditCardFields.expirationYear.options[0].htmlValue}">
+                ${pdict.forms.billingForm.creditCardFields.expirationYear.options[0].label}</option>
+            <isloop items=${pdict.expirationYears} var="year">
+                <option id="${year.toFixed(0)}" value="${year.toFixed(0)}" <isif condition="${pdict.order.billing.payment.selectedPaymentInstruments && pdict.order.billing.payment.selectedPaymentInstruments
+                                                                                            .length > 0 && year == pdict.order.billing.payment.selectedPaymentInstruments[0].expirationYear}">
+                    selected
+                    </isif> >
+                    <isprint value="${year}" formatter="####" />
+                </option>
+            </isloop>
+            </select>
+            <div class="invalid-feedback"></div>
+        </div>
+    </div>
+</div>
+
+<isif
+    condition="${ccSecurityModel == 'DIRECT'}">
+    <div class="row worldpayCreditFields">
+        <div class="col-sm-6">
+            <div class="form-group
+            <isif condition=${creditFields.securityCode.mandatory === true}>required</isif>
+            ${creditFields.securityCode.htmlName}">
+                <label class="form-control-label" for="securityCode">${resources.securityCodeLabel}</label>
+                <input type="text" class="form-control securityCode" id="securityCode" <isprint
+                    value=${creditFields.securityCode.attributes} encoding="off" /> />
+                <div class="invalid-feedback"></div>
+            </div>
+        </div>
+    </div>
+</isif>

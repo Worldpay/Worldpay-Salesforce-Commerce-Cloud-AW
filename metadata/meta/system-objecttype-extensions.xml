@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="CustomerPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpCCTokenData">
+                <display-name xml:lang="x-default">AWP CC Token Data</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpCCTokenExpiry">
+                <display-name xml:lang="x-default">AWP CC Token Expiry</display-name>
+                <type>date</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="updateTokenResult">
+                <display-name xml:lang="x-default">updateTokenResult</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="dateTokenConflictResolved">
+                <display-name xml:lang="x-default">dateTokenConflictResolved</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="nameTokenConflictResolved">
+                <display-name xml:lang="x-default">nameTokenConflictResolved</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="AWPtransactionStatus">
+                <display-name xml:lang="x-default">transaction Status</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpSettleReference">
+                <display-name xml:lang="x-default">AWP Settle Reference</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpRefundReference">
+                <display-name xml:lang="x-default">AWP Refund Reference</display-name>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpCancelUrl">
+                <display-name xml:lang="x-default">AWP Cancel URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialRefundUrl">
+                <display-name xml:lang="x-default">AWP Partial Refund URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialSettleUrl">
+                <display-name xml:lang="x-default">AWP Partial Settle URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpRefundUrl">
+                <display-name xml:lang="x-default">AWP Refund URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpSettleUrl">
+                <display-name xml:lang="x-default">awpSettleUrl</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__awpCancelUrl">
+                <display-name xml:lang="x-default">Cancel URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__awpCurrencyCode">
+                <display-name xml:lang="x-default">Currency Code</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__awpPartialSettleUrl">
+                <display-name xml:lang="x-default">Partial Settle URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__awpSettleUrl">
+                <display-name xml:lang="x-default">Settle URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayLastEvent">
+                <display-name xml:lang="x-default">Worldpay Last Event </display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpCurrencyCode">
+                <display-name xml:lang="x-default">awpCurrencyCode</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="cscLastEvent">
+                <display-name xml:lang="x-default">CSC Last Event</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialRefundAmount">
+                <display-name xml:lang="x-default">AWP Partial Refund Amount</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpPartialSettleAmount">
+                <display-name xml:lang="x-default">AWP Partial Settle Amount</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">custom</display-name>
+                <attribute attribute-id="awpCancelUrl" />
+                <attribute attribute-id="awpPartialSettleUrl" />
+                <attribute attribute-id="awpPartialRefundUrl" />
+                <attribute attribute-id="awpRefundUrl" />
+                <attribute attribute-id="awpSettleUrl" />
+                <attribute attribute-id="WorldpayLastEvent" />
+                <attribute attribute-id="awpCurrencyCode" />
+                <attribute attribute-id="AWPtransactionStatus" />
+                <attribute attribute-id="awpSettleReference" />
+                <attribute attribute-id="awpRefundReference" />
+            </attribute-group>
+            <attribute-group group-id="AccessWorldpay-SalesforceOMS">
+                <display-name xml:lang="x-default">Access Worldpay Salesforce OMS</display-name>
+                <attribute attribute-id="oms_worldpay__awpCancelUrl"/>
+                <attribute attribute-id="oms_worldpay__awpCurrencyCode"/>
+                <attribute attribute-id="oms_worldpay__awpPartialSettleUrl"/>
+                <attribute attribute-id="oms_worldpay__awpSettleUrl"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="OrderPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="awpCCTokenData">
+                <display-name xml:lang="x-default">AWP CC Token Data</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpCCTokenExpiry">
+                <display-name xml:lang="x-default">AWP CC Token Expiry</display-name>
+                <type>date</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="gpayToken">
+                <display-name xml:lang="x-default">Google Pay Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="saveCard">
+                <display-name xml:lang="x-default">Save Card</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="wpTokenRequested">
+                <display-name xml:lang="x-default">Worldpay Token Requested </display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="csdkTokenId">
+                <display-name xml:lang="x-default">Token ID </display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="csdkTokenExp">
+                <display-name xml:lang="x-default">Token Expiry Date</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="csdkTokenPi">
+                <display-name xml:lang="x-default">Token Payment Instrument</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="awpTokenConflict">
+                <display-name xml:lang="x-default">awpTokenConflict</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="updateTokenResult">
+                <display-name xml:lang="x-default">updateTokenResult</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+    </type-extension>
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="AWPEPJSON">
+                <display-name xml:lang="x-default">API Endpoints JSON</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPEnableCCTokenization">
+                <display-name xml:lang="x-default">Enable CC Tokentization</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPGooglePayEnvironment">
+                <display-name xml:lang="x-default">GooglePay Environment</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">TEST</display>
+                        <value>TEST</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PRODUCTION</display>
+                        <value>PRODUCTION</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPGooglePayMerchantID">
+                <display-name xml:lang="x-default">Google Merchant ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>gPayMerchantID</default-value>
+            </attribute-definition>
+		 <attribute-definition attribute-id="AWPGatewayMerchantId">
+            <display-name xml:lang="x-default">Gateway Merchant Id</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+            <default-value>gatewayMerchantId</default-value>
+         </attribute-definition>
+         <attribute-definition attribute-id="AWPGatewayMerchantName">
+            <display-name xml:lang="x-default">Gateway Merchant Name</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+            <default-value>worldpay</default-value>
+         </attribute-definition>
+         <attribute-definition attribute-id="AWPGoogleMerchantName">
+            <display-name xml:lang="x-default">Google Merchant Name</display-name>
+            <type>string</type>
+            <mandatory-flag>false</mandatory-flag>
+            <externally-managed-flag>false</externally-managed-flag>
+            <min-length>0</min-length>
+            <default-value>gPayMerchant</default-value>
+         </attribute-definition>
+            <attribute-definition attribute-id="AWPRiskData">
+                <display-name xml:lang="x-default">Include Risk Data</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPWorldpayCurrencyExponent">
+                <display-name xml:lang="x-default">Currency Exponent</display-name>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>2</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPchallengePreference">
+                <display-name xml:lang="x-default">Challenge Preference</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">noPreference</display>
+                        <value>noPreference</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">noChallengeRequested</display>
+                        <value>noChallengeRequested</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">challengeRequested</display>
+                        <value>challengeRequested</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">challengeMandated</display>
+                        <value>challengeMandated</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPchallengeWindowSize">
+                <display-name xml:lang="x-default">challengeWindowSize</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">fullPage</display>
+                        <value>fullPage</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">250x400</display>
+                        <value>250x400</value>
+                    </value-definition>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">390x400</display>
+                        <value>390x400</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">600x400</display>
+                        <value>600x400</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPdstype">
+                <display-name xml:lang="x-default">3ds Type</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">disabled</display>
+                        <value>disabled</value>
+                    </value-definition>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">two3d</display>
+                        <value>two3d</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="ValidateIPAddress">
+                <display-name xml:lang="x-default">Worldpay Validate IP Address</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayNotificationIPAddressesEnd">
+                <display-name xml:lang="x-default">Worldpay Notification IP Addresses End</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="WorldpayNotificationIPAddressesStart">
+                <display-name xml:lang="x-default"> Worldpay Notification IP Addresses Start</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableJobMailerService">
+                <display-name xml:lang="x-default">EnableJobMailerService</display-name>
+                <description xml:lang="x-default">EnableJobMailerService</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailCC">
+                <display-name xml:lang="x-default">NotifyJobMailCC</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailFrom">
+                <display-name xml:lang="x-default">NotifyJobMailFrom</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="NotifyJobMailTo">
+                <display-name xml:lang="x-default">NotifyJobMailTo</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPisDisclaimerMandatory">
+                <display-name xml:lang="x-default">Is Disclaimer Mandatory?</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+				<default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPshowDisclaimer">
+                <display-name xml:lang="x-default">Show Disclaimer in the Frontend</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+				<default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="webCSDKIdentity">
+                <display-name xml:lang="x-default">Web Checkout State Identity</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="webCSDKScript">
+                <display-name xml:lang="x-default">Web Checkout SDK Script</display-name>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="ccSecurityModel">
+                <display-name xml:lang="x-default">Credit Card Security Model</display-name>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">DIRECT</display>
+                        <value>DIRECT</value>
+                    </value-definition>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">WEB_SDK</display>
+                        <value>WEB_SDK</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+			<attribute-definition attribute-id="isAWPCvvDisabled">
+                <display-name xml:lang="x-default">Worldpay Disable CVV Direct</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+				<default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="enableMagicValues">
+                <display-name xml:lang="x-default">Enable Magic Values</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="overrideOMSStatusValues">
+                <display-name xml:lang="x-default">Override OMS Statuses</display-name>
+                <description xml:lang="x-default">Enable this toggle in case of displaying a custom status value than OMS status value</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="enableFallbackOrderStatus">
+                <display-name xml:lang="x-default">Enable Fallback OrderStatus</display-name>
+                <description xml:lang="x-default">When this is enabled, in case the order is not found in OMS it shows b2c status to the shopper</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="b2cStatusMapping">
+                <display-name xml:lang="x-default">B2C Status Mapping</display-name>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+			<attribute-group group-id="AccessWorldpay-General">
+                <display-name xml:lang="x-default">Access World Pay General configurations</display-name>
+				<attribute attribute-id="ccSecurityModel"/>
+				<attribute attribute-id="webCSDKIdentity" />
+				<attribute attribute-id="webCSDKScript" />
+                <attribute attribute-id="isAWPCvvDisabled"/>
+                <attribute attribute-id="AWPEPJSON" />
+				<attribute attribute-id="AWPWorldpayCurrencyExponent" />
+            </attribute-group>
+			<attribute-group group-id="AccessWorldpay-MobileWallets">
+                <display-name xml:lang="x-default">Access World Pay Mobile wallets configurations</display-name>
+                <attribute attribute-id="AWPGooglePayEnvironment" />
+				<attribute attribute-id="AWPGooglePayMerchantID" />
+                <attribute attribute-id="AWPGoogleMerchantName" />
+				<attribute attribute-id="AWPGatewayMerchantId" />
+                <attribute attribute-id="AWPGatewayMerchantName" />
+            </attribute-group>
+			<attribute-group group-id="AccessWorldpay-AccountOnFile">
+                <display-name xml:lang="x-default">Access World Pay Account On File configurations</display-name>
+                <attribute attribute-id="AWPEnableCCTokenization" />
+            </attribute-group>
+			<attribute-group group-id="AccessWorldpay-SchemeMandated">
+                <display-name xml:lang="x-default">Access World Pay Scheme mandated configurations</display-name>
+                <attribute attribute-id="AWPisDisclaimerMandatory" />
+                <attribute attribute-id="AWPshowDisclaimer" />
+            </attribute-group>
+			 <attribute-group group-id="AccessWorldpay-SecureTransaction">
+                <display-name xml:lang="x-default">Access World Pay secure transactions configurations</display-name>
+                <attribute attribute-id="AWPdstype" />
+				<attribute attribute-id="AWPchallengePreference" />
+				<attribute attribute-id="AWPchallengeWindowSize" />
+				<attribute attribute-id="AWPRiskData" />
+                <attribute attribute-id="enableMagicValues" />
+            </attribute-group>
+			<attribute-group group-id="AccessWorldpay-Notifications">
+                <display-name xml:lang="x-default">Access World Pay Notification configurations</display-name>
+                <attribute attribute-id="WorldpayNotificationIPAddressesStart" />
+				<attribute attribute-id="WorldpayNotificationIPAddressesEnd" />
+				<attribute attribute-id="ValidateIPAddress" />
+                <attribute attribute-id="EnableJobMailerService" />
+                <attribute attribute-id="NotifyJobMailFrom" />
+                <attribute attribute-id="NotifyJobMailTo" />
+				<attribute attribute-id="NotifyJobMailCC" />
+            </attribute-group>
+            <attribute-group group-id="AccessWorldpay- SalesforceOMS">
+                <display-name xml:lang="x-default">Access World Pay Salesforce OMS configurations</display-name>
+                <attribute attribute-id="b2cStatusMapping"/>
+                <attribute attribute-id="overrideOMSStatusValues"/>
+                <attribute attribute-id="enableFallbackOrderStatus"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+	<type-extension type-id="PaymentMethod">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="type">
+                <display-name xml:lang="x-default">Type</display-name>
+                <description xml:lang="x-default">Created for identifying the type of Payment Method. &#13;
+Direct or Redirect</description>
+                <type>enum-of-string</type>
+                <localizable-flag>false</localizable-flag>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Direct</display>
+                        <value>DIRECT</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Redirect</display>
+                        <value>REDIRECT</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">Custom</display-name>
+                <attribute attribute-id="type"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="ServiceCredential">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="clientid">
+                <display-name xml:lang="x-default">Consumer Key</display-name>
+                <description xml:lang="x-default">Represents the Consumer Key associated to the CommerceCloudConnect Connected App in Service Cloud.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="clientsecret">
+                <display-name xml:lang="x-default">Consumer Secret</display-name>
+                <description xml:lang="x-default">Represents the Consumer Secret associated to the CommerceCloudConnect Connected App in Service Cloud.</description>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="orderManagmentConnectorAttributes">
+                <display-name xml:lang="x-default">Order Management Connector Attributes</display-name>
+                <description xml:lang="x-default">Represents the service-specific custom system properties leveraged by the OMS Connector.</description>
+                <attribute attribute-id="clientid"/>
+                <attribute attribute-id="clientsecret"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>
