@@ -80,7 +80,7 @@
         <credential-id>AWP_CardOnFile</credential-id>
     </service>
 
-    <service service-id="order.management.auth-MobileFirst">
+    <service service-id="order.management.auth-RefArch">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>
         <log-prefix>oms-connector-auth</log-prefix>
@@ -91,7 +91,7 @@
         <credential-id>oms auth</credential-id>
     </service>
 
-    <service service-id="order.management.rest-MobileFirst">
+    <service service-id="order.management.rest-RefArch">
         <service-type>HTTP</service-type>
         <enabled>true</enabled>
         <log-prefix>oms-connector-auth</log-prefix>

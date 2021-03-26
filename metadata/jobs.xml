@@ -4,7 +4,7 @@
         <description>Batch job for reading Custom Objects of Order Notifications and updating Order Statuses</description>
         <parameters/>
         <flow>
-            <context site-id="MobileFirst"/>
+            <context site-id="RefArch"/>
             <step step-id="OrderNotificationUpdatesJob" type="ExecuteScriptModule" enforce-restart="false">
                 <description>Batch job for reading Custom Objects of Order Notifications and updating Order Statuses</description>
                 <parameters>
