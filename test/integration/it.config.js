@@ -6,6 +6,7 @@ var getConfig = require('@tridnguyen/config');
 
 var opts = Object.assign({}, getConfig({
     baseUrl: 'config.baseUrl/en_US',
+   // ocapiUrl: 'config.ocapiUrl',
     suite: '*',
     reporter: 'spec',
     timeout: 60000,

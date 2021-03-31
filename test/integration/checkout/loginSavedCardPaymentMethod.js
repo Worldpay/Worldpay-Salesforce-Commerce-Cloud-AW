@@ -112,7 +112,7 @@ describe('Place Order - Registered User Credit Card Payment Method using Saved C
                 return request(myRequest);
             })
             .then(function (response) {
-                // console.log(JSON.stringify(response));
+               // console.log(JSON.stringify(response));
                 var responseBody = response.body;
                 customerId = responseBody.customer_id;
                 authBearer = response.headers.authorization;

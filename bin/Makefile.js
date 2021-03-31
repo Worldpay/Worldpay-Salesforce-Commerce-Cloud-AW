@@ -71,7 +71,7 @@ target.compileFonts = function () {
 
 target.integration = function (args) {
     var defaults = {
-        baseUrl: 'https://' + getSandboxUrl() + '/on/demandware.store/Sites-RefArchAWP-Site/lang=en_US'
+        baseUrl: 'https://' + getSandboxUrl() + '/on/demandware.store/Sites-RefArch-Site/lang=en_US'
     };
 
     var options = getOptions(defaults, args);

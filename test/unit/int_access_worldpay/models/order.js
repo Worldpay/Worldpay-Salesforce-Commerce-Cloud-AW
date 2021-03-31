@@ -8,15 +8,25 @@ var baseOrderModelMock = require('../../../mocks/models/baseOrder');
 var OrderModel;
 
 describe('OrderModel confirmationstatus Property', function () {
-	
+
 	before(function () {
         mockSuperModule.create(baseOrderModelMock);
-        OrderModel = proxyquire('../../../../cartridges/int_access_worldpay_sfra/cartridge/models/order', {
-            'dw/web/Resource': {
-                msgf: function (params) { return params; },
-                msg: function (params) { return params; }
-            }
-        });
+        OrderModel = proxyquire('../../../../cartridges/int_access_worldpay_sfra/cartridge/models/order',
+            {
+                'dw/web/Resource': {
+                    msgf: function (params) {
+                        return params;
+                    },
+                    msg: function (params) {
+                        return params;
+                    }
+                },
+                'dw/order/OrderMgr': {
+                    getOrder: function () {
+                        return {order: 'returned order'};
+                    }
+                }
+            });
     });
 
     after(function () {

@@ -39,6 +39,7 @@
                 <isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
                     <div class="columns small-12 csc-above-left">
                         <input type="hidden" name="order_id" value="${order.orderNo}"/>
+                        <input type="hidden" name="order_token" value="${order.orderToken}"/>
                         <input type="hidden" name="order_status" value="true"/>
                         <isif condition="${order.custom.awpPartialRefundUrl && (order.custom.cscLastEvent ==='sentForSettlement' ||order.custom.cscLastEvent ==='PartiallyRefunded'  ) && order.custom.awpPartialRefundAmount < pdict.amount}" >
                             <input type="number" step="0.01" min ="0" id="refundAmount" name="refundAmount"><br><br>

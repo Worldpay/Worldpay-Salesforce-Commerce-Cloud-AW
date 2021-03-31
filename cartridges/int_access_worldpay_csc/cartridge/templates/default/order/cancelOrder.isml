@@ -39,6 +39,7 @@
                 <isif condition="${(order.confirmationStatus.value == pdict.statusConfirmed)|| (!(order.createdBy.equals( 'Customer'))&& order.confirmationStatus.value == 0)}">
                     <div class="columns small-12 csc-above-left">
                         <input type="hidden" name="order_id" value="${order.orderNo}"/>
+                        <input type="hidden" name="order_token" value="${order.orderToken}"/>
                         <input type="hidden" name="order_status" value="true"/>
                         <isif condition="${order.custom.awpCancelUrl && (order.custom.WorldpayLastEvent ==='authorized' || order.custom.WorldpayLastEvent ==='sentForAuthorization') && !order.custom.cscLastEvent}" >
                             <button class="dw-button dw-button-primary" type="submit">

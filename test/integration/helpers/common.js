@@ -1,12 +1,24 @@
+var path = require('path');
+require('shelljs/make');
+
+function getSandboxUrl() {
+    if (test('-f', path.join(process.cwd(), 'dw.json'))) {
+        var config = cat(path.join(process.cwd(), 'dw.json'));
+        var parsedConfig = JSON.parse(config);
+        return '' + parsedConfig.hostname;
+    }
+    return '';
+}
+
 function common() {}
 
-common.variantId = '008884303989M';
+common.variantId = 'sony-kdl-32m4000M';
 common.loginDetails = {
-    loginId: 'rammi18g@gmail.com',
-    password: 'Rammi@18g'
+    loginId: 'test@worldpay.com',
+    password: 'Worldpay@123'
 };
 
-common.ocapiUrl = 'https://worldpay01-tech-prtnr-eu04-dw.demandware.net/s/Sites-RefArchAWP-Site/dw/shop/v19_1';
+common.ocapiUrl = 'https://' + getSandboxUrl() + '/s/RefArch/dw/shop/v19_1';
 
 common.amex = {
     cardName: 'AMEX-SSL',
@@ -68,6 +80,5 @@ common.billingAddress = {
     email: 'jnishikant@sapient.com',
     phone: '3333333333'
 };
-
 
 module.exports = common;

@@ -6,8 +6,9 @@ var Order = require('dw/order/Order');
 
 server.get('CancelOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
+    var orderToken = params.order_token.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
+    var order = OrderMgr.getOrder(orderID, orderToken);
 
     res.render('/order/cancelOrder', {
         order: order,
@@ -20,8 +21,9 @@ server.get('CancelOrder', function (req, res, next) {
 
 server.get('SettleOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
+    var orderToken = params.order_token.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
+    var order = OrderMgr.getOrder(orderID, orderToken);
 
     res.render('/order/settleOrder', {
         order: order,
@@ -34,8 +36,9 @@ server.get('SettleOrder', function (req, res, next) {
 
 server.get('PartialSettleOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
+    var orderToken = params.order_token.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
+    var order = OrderMgr.getOrder(orderID, orderToken);
     var Utils = require('*/cartridge/scripts/common/utils');
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
@@ -51,8 +54,9 @@ server.get('PartialSettleOrder', function (req, res, next) {
 
 server.get('RefundOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
+    var orderToken = params.order_token.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
+    var order = OrderMgr.getOrder(orderID, orderToken);
 
     res.render('/order/refundOrder', {
         order: order,
@@ -65,8 +69,9 @@ server.get('RefundOrder', function (req, res, next) {
 
 server.get('PartialRefundOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
+    var orderToken = params.order_token.stringValue;
     var OrderMgr = require('dw/order/OrderMgr');
-    var order = OrderMgr.getOrder(orderID);
+    var order = OrderMgr.getOrder(orderID, orderToken);
     var Utils = require('*/cartridge/scripts/common/utils');
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
@@ -80,11 +85,12 @@ server.get('PartialRefundOrder', function (req, res, next) {
 });
 server.get('CancelOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
+    var orderToken = params.order_token.stringValue;
     var success = true;
     var OrderMgr = require('dw/order/OrderMgr');
-    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
-    var order = OrderMgr.getOrder(orderID);
-    var result = OrderHelpers.cancelOrder(orderID);
+    var worldpayCscOrderHelper = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var order = OrderMgr.getOrder(orderID, orderToken);
+    var result = worldpayCscOrderHelper.cancelOrder(orderID);
     if (!result || result.error) {
         success = false;
     }
@@ -98,11 +104,12 @@ server.get('CancelOrderAction', function (req, res, next) {
 });
 server.get('SettleOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
+    var orderToken = params.order_token.stringValue;
     var success = true;
     var OrderMgr = require('dw/order/OrderMgr');
-    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
-    var order = OrderMgr.getOrder(orderID);
-    var result = OrderHelpers.settleOrder(orderID);
+    var worldpayCscOrderHelper = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var order = OrderMgr.getOrder(orderID, orderToken);
+    var result = worldpayCscOrderHelper.settleOrder(orderID);
     if (!result || result.error) {
         success = false;
     }
@@ -117,11 +124,12 @@ server.get('SettleOrderAction', function (req, res, next) {
 
 server.get('PartialSettleOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
+    var orderToken = params.order_token.stringValue;
     var settleamount = params.settleAmount.rawValue;
     var success = true;
     var OrderMgr = require('dw/order/OrderMgr');
-    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
-    var order = OrderMgr.getOrder(orderID);
+    var worldpayCscOrderHelper = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var order = OrderMgr.getOrder(orderID, orderToken);
     var partialSettleAmount = order.custom.awpPartialSettleAmount;
     var Utils = require('*/cartridge/scripts/common/utils');
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
@@ -133,7 +141,7 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
     var currency = totalprice.getCurrencyCode().toString();
     var result;
     if (settleamount <= amount && (settleamount + partialSettleAmount) <= amount) {
-        result = OrderHelpers.partialSettleOrder(orderID, settleamount, partialSettleAmount, currency);
+        result = worldpayCscOrderHelper.partialSettleOrder(orderID, settleamount, partialSettleAmount, currency);
     } else {
         success = false;
     }
@@ -151,11 +159,12 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
 
 server.get('RefundOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
+    var orderToken = params.order_token.stringValue;
     var success = true;
     var OrderMgr = require('dw/order/OrderMgr');
-    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
-    var order = OrderMgr.getOrder(orderID);
-    var result = OrderHelpers.refundOrder(orderID);
+    var worldpayCscOrderHelper = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var order = OrderMgr.getOrder(orderID, orderToken);
+    var result = worldpayCscOrderHelper.refundOrder(orderID);
     if (!result || result.error) {
         success = false;
     }
@@ -171,11 +180,12 @@ server.get('RefundOrderAction', function (req, res, next) {
 
 server.get('PartialRefundOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
+    var orderToken = params.order_token.stringValue;
     var settleamount = params.refundAmount.rawValue;
     var success = true;
     var OrderMgr = require('dw/order/OrderMgr');
-    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
-    var order = OrderMgr.getOrder(orderID);
+    var worldpayCscOrderHelper = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var order = OrderMgr.getOrder(orderID, orderToken);
     var partialRefundAmount = order.custom.awpPartialRefundAmount;
     var Utils = require('*/cartridge/scripts/common/utils');
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
@@ -187,7 +197,7 @@ server.get('PartialRefundOrderAction', function (req, res, next) {
     var currency = totalprice.getCurrencyCode().toString();
     var result;
     if (settleamount <= amount && (settleamount + partialRefundAmount) <= amount) {
-        result = OrderHelpers.partialRefundOrder(orderID, settleamount, partialRefundAmount, currency);
+        result = worldpayCscOrderHelper.partialRefundOrder(orderID, settleamount, partialRefundAmount, currency);
     } else {
         success = false;
     }
