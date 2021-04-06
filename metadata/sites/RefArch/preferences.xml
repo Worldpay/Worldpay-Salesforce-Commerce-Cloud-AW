@@ -27,9 +27,6 @@
             <preference preference-id="WorldpayNotificationIPAddressesEnd">195360000</preference>
             <preference preference-id="WorldpayNotificationIPAddressesStart">195359000</preference>
             <preference preference-id="ccSecurityModel">WEB_SDK</preference>
-            <preference preference-id="enableStorePickUp">true</preference>
-            <preference preference-id="storeLookupMaxDistance">200</preference>
-            <preference preference-id="storeLookupUnit">mi</preference>
             <preference preference-id="webCSDKIdentity">8d4cbbb0-66f8-4ec5-9a21-19b55dc663ab</preference>
             <preference preference-id="webCSDKScript">https://try.access.worldpay.com/access-checkout/v1/checkout.js</preference>
         </development>

@@ -4,38 +4,6 @@
 
     <payment-processor processor-id="Worldpay">
         <description>Worldpay Payment Processor</description>
-        <preferences>
-            <all-instances/>
-            <development>
-                <preference preference-id="AWPEnableCCTokenization">true</preference>
-                <preference preference-id="AWPchallengePreference">noPreference</preference>
-                <preference preference-id="AWPchallengeWindowSize">fullPage</preference>
-                <preference preference-id="AWPRiskData">false</preference>
-                <preference preference-id="AWPdstype">two3d</preference>
-                <preference preference-id="AWPEPJSON">{
-    "payments": {
-        "authorization": "authorizations"
-    },
-    "3ds": {
-        "jwt": "deviceDataInitialization",
-        "authentication": "authentication",
-        "verification": "verification"
-    }
-}</preference>
-                <preference preference-id="WorldpayNotificationIPAddressesEnd">195360000</preference>
-                <preference preference-id="WorldpayNotificationIPAddressesStart">195359000</preference>
-                <preference preference-id="EnableJobMailerService">false</preference>
-                <preference preference-id="AWPisDisclaimerMandatory">false</preference>
-                <preference preference-id="AWPshowDisclaimer">true</preference>
-                <preference preference-id="AWPGooglePayEnvironment">TEST</preference>
-                <preference preference-id="AWPGooglePayMerchantID">627392fb1cafcb1</preference>
-                <preference preference-id="webCSDKIdentity">8d4cbbb0-66f8-4ec5-9a21-19b55dc663ab</preference>
-                <preference preference-id="webCSDKScript">https://try.access.worldpay.com/access-checkout/v1/checkout.js</preference>
-                <preference preference-id="ccSecurityModel">WEB_SDK</preference>
-            </development>
-            <staging/>
-            <production/>
-        </preferences>
     </payment-processor>
 
 </payment-processors>
