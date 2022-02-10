@@ -95,7 +95,12 @@ server.get('Submit', function (req, res, next) {
 
             if (pendingResult.redirect && pendingResult.stage.equals('orderConfirm')) {
                 COHelpers.sendConfirmationEmail(order, req.locale.id);
-                res.redirect(URLUtils.url('Order-Confirm', 'ID', pendingResult.ID, 'token', pendingResult.token).toString());
+                res.render('/checkout/orderConfirmForm', {
+                    error: false,
+                    orderID: orderObj.orderNo,
+                    orderToken: orderObj.orderToken,
+                    continueUrl: URLUtils.url('Order-Confirm').toString()
+                });
                 return next();
             }
         } else {
@@ -122,7 +127,7 @@ server.get('Submit', function (req, res, next) {
                     }
                 }
             }
-            error = Utils.worldpayErrorMessage();
+            error = Utils.getErrorMessage();
             Transaction.wrap(function () {
                 OrderMgr.failOrder(order, true);
             });

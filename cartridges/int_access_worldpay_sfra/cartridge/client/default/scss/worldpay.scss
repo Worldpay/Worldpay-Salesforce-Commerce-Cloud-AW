@@ -73,54 +73,153 @@
 }
 
 div.payment-information {
-	.panel-heading {
-	margin-bottom: 0.625rem;
-	}
-	&[data-payment-method-id='CREDIT_CARD'] {
-		.worldpayPreferCardField {
-			display: none;
-		}
-	}
+    .panel-heading {
+    margin-bottom: 0.625rem;
+    }
+
+    &[data-payment-method-id='Worldpay'] {
+        .credit-card-content, .credit-card-content-redirect {
+            & > .checkout-hidden {
+                display: block;
+            }
+        }
+
+        .worldpaySaveCreditFields {
+            display: block;
+        }
+
+        .worldpayCreditFields {
+            display: none;
+        }
+
+        button.add-payment {
+            display: none;
+        }
+
+        button.cancel-new-payment {
+            display: none;
+        }
+
+        .form-group.required.saved-security-code .form-control-label::before {
+          content: '';
+        }
+
+        .form-group.required.dwfrm_billing_creditCardFields_cpf .form-control-label::before {
+          content: '';
+        }
+
+        .tokenization-disabled {
+            display: none;
+        }
+    }
+    &[data-payment-method-id='CREDIT_CARD'] {
+        .worldpayPreferCardField {
+            display: none;
+        }
+    }
 }
 
 div.data-checkout-stage {
-	&[data-checkout-stage='submitted'] {
-		.edit-button {
-			display: none;
-		}
-		button.place-order {
-			display: none;
-		}
-	}
+    &[data-checkout-stage='submitted'] {
+        .edit-button {
+            display: none;
+        }
+        button.place-order {
+            display: none;
+        }
+    }
 }
 
 #disclaimerModal, #disclaimerModalRedirect{
-	input[name="disclaimer"] + span, input[name="disclaimercc"] + span{
-		margin-left: 0.625rem;
-	}
+    input[name="disclaimer"] + span, input[name="disclaimercc"] + span{
+        margin-left: 0.625rem;
+    }
 }
 
+.ach-company-name{
+    display:none;
+}
 #gpayerror {
     display:none;
     color:red;
 }
+#achpayerror {
+    display:none;
+    color:red;
+}
 #novtokenerror {
-	display:none;
-	color:red;
+    display:none;
+    color:red;
 }
 #wpservererror {
-	display:none;
-	color:red;
+    display:none;
+    color:red;
 }
 #updateLimitCrossed {
-	display:none;
-	color:red;
+    display:none;
+    color:red;
 }
 #tokenConflict {
-	display:none;
-	color:red;
+    display:none;
+    color:red;
 }
 .card-save-msg {
-	color:red;
-	font-style:italic;
+    color:red;
+    font-style:italic;
+}
+.nav-tiles{
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.5);
+  transition: 0.3s;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.nav-tiles:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: 10px;
+}
+.card-head img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.card-head{
+    padding: 10px;
+    border: 1px solid #00a1e0;
+    width: 50%;
+    margin-bottom: -1px;
+    display: none;
+}
+#billing-user-content {
+    padding: 20px;
+    border: 1px solid #00a1e0;
+}
+.payment-form-content{
+    padding: 20px;
+    border: 1px solid #00a1e0;
+    margin-top: -1px;
+}
+.payment-details {
+    #hidden-card-number {
+        display: none;
+    }
+}
+.redirect-text {
+    text-align: center;
+    color: #0070d2;
+}
+#disclaimererror{
+    display:none;
+    color:red;
+}
+
+#chosetosave{
+    display:none;
+    color:red;
+}
+
+#cardiframe{
+    display:none;
 }

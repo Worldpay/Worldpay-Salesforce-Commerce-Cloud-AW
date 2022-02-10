@@ -3,9 +3,10 @@
 var server = require('server');
 var Status = require('dw/system/Status');
 var PaymentInstrument = require('dw/order/PaymentInstrument');
-var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-var WorldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
-var CardHelper = require('*/cartridge/scripts/common/cardHelper');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var worldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
+var cardHelper = require('*/cartridge/scripts/common/cardHelper');
+var utils = require('*/cartridge/scripts/common/utils');
 
 
 /**
@@ -41,7 +42,7 @@ function handle(basket, pi, paymentMethodID, req) {
         if (ccSecurityModel === 'DIRECT') {
             worldpayCardType = paymentInformation.cardType.value;
         } else if (ccSecurityModel === 'WEB_SDK') {
-            worldpayCardType = CardHelper.getCardType(paymentInformation.cardType.value.toUpperCase());
+            worldpayCardType = cardHelper.getCardType(paymentInformation.cardType.value.toUpperCase());
         }
         var paymentCardValue = PaymentMgr.getPaymentCard(worldpayCardType);
         var applicablePaymentCards = creditCardPaymentMethod.getApplicablePaymentCards(
@@ -135,7 +136,7 @@ function handle(basket, pi, paymentMethodID, req) {
         if (creditCardStatus.error) {
             if (!(creditCardStatus instanceof Status) && creditCardStatus.cardUnknown) {
                 cardErrors[paymentInformation.cardNumber.htmlName] =
-                    Resource.msg('error.invalid.card.number', 'creditCard', null);
+                utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
             } else if (creditCardStatus.items) {
                 var item;
                 for (var k = 0; k < creditCardStatus.items.length; k++) {
@@ -143,19 +144,19 @@ function handle(basket, pi, paymentMethodID, req) {
                     switch (item.code) {
                         case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
                             cardErrors[paymentInformation.cardNumber.htmlName] =
-                                Resource.msg('error.invalid.card.number', 'creditCard', null);
+                                utils.getConfiguredLabel('error.invalid.card.number', 'creditCard');
                             break;
 
                         case PaymentStatusCodes.CREDITCARD_INVALID_EXPIRATION_DATE:
                             cardErrors[paymentInformation.expirationMonth.htmlName] =
-                                Resource.msg('error.expired.credit.card', 'creditCard', null);
+                            utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
                             cardErrors[paymentInformation.expirationYear.htmlName] =
-                                Resource.msg('error.expired.credit.card', 'creditCard', null);
+                            utils.getConfiguredLabel('error.expired.credit.card', 'creditCard');
                             break;
 
                         case PaymentStatusCodes.CREDITCARD_INVALID_SECURITY_CODE:
                             cardErrors[paymentInformation.securityCode.htmlName] =
-                                Resource.msg('error.invalid.security.code', 'creditCard', null);
+                            utils.getConfiguredLabel('error.invalid.security.code', 'creditCard');
                             break;
                         default:
                             serverErrors.push(
@@ -167,25 +168,21 @@ function handle(basket, pi, paymentMethodID, req) {
             return { fieldErrors: [cardErrors], serverErrors: serverErrors, error: true };
         }
 
-        var cardHandleResult = WorldpayPayment.handleCreditCardAWP(basket, paymentInformation);
+        var cardHandleResult = worldpayPayment.handleCreditCardAWP(basket, paymentInformation);
         if (cardHandleResult.error) {
             paymentforms.encryptedData = '';
         }
     } else if (paymentMethod && paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) && ccSecurityModel === 'WEB_SDK') {
         paymentforms = server.forms.getForm('billing').creditCardFields;
-        if (paymentforms.saveCard && paymentforms.saveCard.value &&
-               (paymentInformation.disclaimerCcDirect.value === 'yes' || paymentInformation.disclaimerCcDirect.value == null)) {
+        if (paymentforms.saveCard && paymentforms.saveCard.value) {
             paymentInformation.saveCard = {
                 value: paymentforms.saveCard.value,
                 htmlName: paymentforms.saveCard.htmlName
             };
         }
-        cardType = paymentInformation.cardType.value;
-        creditCardStatus = {};
-        paymentCard = PaymentMgr.getPaymentCard(cardType);
-        return WorldpayPayment.handleWebSdk(basket, paymentInformation);
+        return worldpayPayment.handleWebSdk(basket, paymentInformation);
     } else if (paymentMethod != null) {
-        return WorldpayPayment.handleAPM(basket, paymentInformation);
+        return worldpayPayment.handleAPM(basket, paymentInformation);
     }
     return '';
 }
@@ -201,7 +198,12 @@ function handle(basket, pi, paymentMethodID, req) {
  * @return {Object} returns an error object
  */
 function authorize(orderNumber, paymentInstrument, paymentProcessor, orderType) {
-    if (!paymentProcessor || !paymentProcessor.getID().equalsIgnoreCase(WorldpayConstants.WORLDPAY) || !paymentInstrument) {
+    var OrderMgr = require('dw/order/OrderMgr');
+    var Transaction = require('dw/system/Transaction');
+    var Site = require('dw/system/Site');
+    var ccSecurityModel = Site.current.getCustomPreferenceValue('ccSecurityModel').value;
+    var order = OrderMgr.getOrder(orderNumber);
+    if (!paymentProcessor || !paymentProcessor.getID().equalsIgnoreCase(worldpayConstants.WORLDPAY) || !paymentInstrument) {
         var errors = [];
         var Resource = require('dw/web/Resource');
         errors.push(Resource.msg('error.payment.processor.not.supported', 'checkout', null));
@@ -215,7 +217,20 @@ function authorize(orderNumber, paymentInstrument, paymentProcessor, orderType) 
         cvn = session.privacy.motocvn;
         delete session.privacy.motocvn;
     }
-    return WorldpayPayment.authorizeAWP(orderNumber, cvn, null, orderType);
+    Transaction.wrap(function () {
+        order.custom.isExemptionRequested = false;
+    });
+    var apmName = paymentInstrument.getPaymentMethod();
+    if ((paymentInstrument.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) && ccSecurityModel === 'WEB_SDK')) {
+        return worldpayPayment.initiateWebSDKAuthorization(orderNumber, cvn, null);
+    } else if (paymentInstrument.paymentMethod.equals(PaymentInstrument.METHOD_CREDIT_CARD) && ccSecurityModel === 'DIRECT') {
+        return worldpayPayment.initiateDirectAuthorization(orderNumber, cvn, null, orderType);
+    } else if (apmName.equals(worldpayConstants.GOOGLEPAY)) {
+        return worldpayPayment.initiateGPayAuthorization(orderNumber);
+    } else if (apmName.equals(worldpayConstants.ACHPAY)) {
+        return worldpayPayment.initiateAchPayAuthorization(orderNumber);
+    }
+    return { authorized: true };
 }
 
 /**
@@ -225,7 +240,7 @@ function authorize(orderNumber, paymentInstrument, paymentProcessor, orderType) 
  * @return {Object} returns an error object
  */
 function updateToken(paymentInstrument, customer) {
-    return WorldpayPayment.updateToken(paymentInstrument, customer);
+    return worldpayPayment.updateToken(paymentInstrument, customer);
 }
 
 /**
@@ -272,7 +287,7 @@ function handlemotoorder(order, orderNumber, cvn) {
                             orderNumber,
                             paymentInstrument,
                             paymentProcessor,
-                            WorldpayConstants.MOTO_ORDER
+                            worldpayConstants.MOTO_ORDER
                         );
                     } else {
                         authorizationResult = HookMgr.callHook(

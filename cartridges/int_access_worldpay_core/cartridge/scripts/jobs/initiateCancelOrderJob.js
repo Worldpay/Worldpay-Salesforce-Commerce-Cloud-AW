@@ -71,7 +71,7 @@ function initiateCancelOrder() {
                 renderingParameters.put('errorCount', errorCount);
                 renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
                 renderingParameters.put('errorString', errorString);
-                var template = new Util.Template('emailtemplateforjob.isml');
+                var template = new Util.Template('emailTemplateForJob.isml');
                 var mail = new Net.Mail();
                 var content = template.render(renderingParameters);
                 mail.addTo(mailTo);

@@ -1,0 +1,54 @@
+<!-- Modal -->
+<div class="modal fade" id="instant-checkout" tabindex="-1" role="dialog" aria-labelledby="instant-checkout-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="instant-checkout-title">
+                    ${Resource.msg('label.instant.checkout.title', 'cart', null)}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="address-section">
+                    <isinclude template="cart/instantCheckout/instantCheckoutShipping" />
+                    <isinclude template="cart/instantCheckout/instantCheckoutBilling" />
+                </div>
+                <div class="shipping-methods-section">
+                    <isinclude template="cart/instantCheckout/instantCheckoutShippingMethods" />
+                </div>
+                <div class="payment-section">
+                    <isinclude template="cart/instantCheckout/instantCheckoutPayment" />
+                </div>
+                <div class="totals-section">
+                    <isinclude template="cart/instantCheckout/instantCheckoutTotals" />
+                </div>
+            </div>
+            <div class="server-error d-none">
+                <div id="instant-checkout-error"></div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    ${Resource.msg('label.instant.checkout.cancel', 'cart', null)}
+                </button>
+                <button type="button" id="complete-checkout" class="btn btn-primary"
+                data-target="${URLUtils.url('CheckoutInstant-SubmitOrder')}"
+                data-action="${URLUtils.url('CheckoutServices-PlaceOrder')}">
+                    ${Resource.msg('label.instant.checkout.complete', 'cart', null)}
+                </button>
+            </div>
+            <isset name="threeDSType" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('AWPdstype').value}" scope="page" />
+            <isset name="isInstantCheckout" value="${session.privacy.isInstantPurchaseBasket}" scope="page" />
+            <isif condition="${threeDSType === 'two3d'}">
+                <iframe id="card-iframe" 
+                 data-threedstype="${threeDSType}"
+                 data-isinstantcheckout="${isInstantCheckout}"
+                 height="100" data-url="${URLUtils.url('Worldpay-Ddc').abs()}" width="100"></iframe>
+                <input type="hidden" id="authenticate3dsURL" value="${URLUtils.https('Worldpay-Authenticate3ds')}" />
+            </isif>
+        </div>
+    </div>
+</div>
+

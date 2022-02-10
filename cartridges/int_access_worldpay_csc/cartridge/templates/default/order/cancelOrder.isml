@@ -12,16 +12,16 @@
         <isif condition="${pdict.success}">
             <div class="dw-notify-success">
                 <div class="dw-body">
-                    <div class="dw-title">${Resource.msg('cancel.success','worldpaybm',null)}</div>
-                    <div class="dw-msg">${Resource.msg('cancel.success.message','worldpaybm',null)}</div>
+                    <div class="dw-title">${Resource.msg('cancel.success','worldpayBm',null)}</div>
+                    <div class="dw-msg">${Resource.msg('cancel.success.message','worldpayBm',null)}</div>
                 </div>
             </div>
             <br/>
             <iselse>
                 <div class="dw-notify-warning">
                     <div class="dw-body">
-                        <div class="dw-title">${Resource.msg('cancel.warning','worldpaybm',null)}</div>
-                        <div class="dw-msg">${Resource.msg('cancel.warning.message','worldpaybm',null)}</div>
+                        <div class="dw-title">${Resource.msg('cancel.warning','worldpayBm',null)}</div>
+                        <div class="dw-msg">${Resource.msg('cancel.warning.message','worldpayBm',null)}</div>
                     </div>
                 </div>
                 <br/>
@@ -43,14 +43,14 @@
                         <input type="hidden" name="order_status" value="true"/>
                         <isif condition="${order.custom.awpCancelUrl && (order.custom.WorldpayLastEvent ==='authorized' || order.custom.WorldpayLastEvent ==='sentForAuthorization') && !order.custom.cscLastEvent}" >
                             <button class="dw-button dw-button-primary" type="submit">
-                                <span>${Resource.msg('cancel.order','worldpaybm',null)}</span>
+                                <span>${Resource.msg('cancel.order','worldpayBm',null)}</span>
                             </button>
                             <br/>
                             <iselse>
                                 <isif condition="${!pdict.success}">
                                     <div class="dw-notify-warning">
                                         <div class="dw-body">
-                                            <div class="dw-msg"> ${Resource.msg('nocancel.order','worldpaybm',null)} </div>
+                                            <div class="dw-msg"> ${Resource.msg('nocancel.order','worldpayBm',null)} </div>
                                         </div>
                                     </div>
                                 </isif>

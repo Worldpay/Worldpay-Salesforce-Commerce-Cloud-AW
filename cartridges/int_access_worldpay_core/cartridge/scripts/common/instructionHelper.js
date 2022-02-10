@@ -1,9 +1,7 @@
 'use strict';
 
-var Resource = require('dw/web/Resource');
-var CreateRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
-var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-
+var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper');
+var Site = require('dw/system/Site');
 
 /* This payment array helps to achive to construct the
 *  instructions Object without modifying the existing functions
@@ -30,15 +28,14 @@ function getGpayDetails(paymentInstrument, options) {
  * @returns {Object} narrative object
  */
 function getNarrative(order) {
-    var tradingName = Resource.msg('order.channel.storefront', 'worldpay', null);
-    if (!(order.createdBy.equals(WorldpayConstants.CUSTOMERORDER)) && session.isUserAuthenticated()) {
-        tradingName = Resource.msg('order.channel.moto', 'worldpay', null);
+    var line1 = Site.current.getCustomPreferenceValue('narrativeLine1');
+    if (line1) {
+        return {
+            line1: line1,
+            line2: order.orderNo.toString()
+        };
     }
-
-    return {
-        line1: tradingName,
-        line2: order.orderNo.toString()
-    };
+    return '';
 }
 
 /**
@@ -52,7 +49,7 @@ function getValue(order, preferences) {
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
     var currency = totalprice.getCurrencyCode().toString();
     var amount = totalprice.getValue();
-	// multiplying amount with currentExponent (2) power of 10 since downstream systems have currency exponent of 2
+    // multiplying amount with currentExponent (2) power of 10 since downstream systems have currency exponent of 2
     amount = parseInt((amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0), 10);
     return {
         currency: currency,
@@ -67,10 +64,19 @@ function getValue(order, preferences) {
  * @returns {Object} Gpay details object
  */
 function getWCDSKPaymentDetails(paymentInstrument, options) {
-    var ccObj = {
-        type: options.type,
-        href: paymentInstrument.custom.awpCCTokenData
-    };
+    var ccObj = {};
+    if (options.type === 'card/checkout') {
+        ccObj = {
+            type: options.type,
+            tokenHref: paymentInstrument.custom.awpCCTokenData,
+            cvcHref: session.privacy.cvvSessionHref
+        };
+    } else {
+        ccObj = {
+            type: options.type,
+            href: paymentInstrument.custom.awpCCTokenData
+        };
+    }
     return ccObj;
 }
 
@@ -90,11 +96,10 @@ function getInstructionForWCSDK(order, preferences, paymentInstrument, options) 
     instruction.value = getValue(order, preferences);
     instruction.paymentInstrument = getWCDSKPaymentDetails(paymentInstrument, options);
     if (instruction.paymentInstrument.type !== 'card/tokenized') {
-        instruction.paymentInstrument.billingAddress = CreateRequestHelper.getBillingAddress(order);
+        instruction.paymentInstrument.billingAddress = createRequestHelper.getBillingAddress(order);
     }
     return instruction;
 }
-
 
 /**
  * Returns instruction object
@@ -128,9 +133,9 @@ function CreditCardInstructions() {
         name: 'CREDIT_CARD', // Match the ID of paymentMethod
         prepareInstructions: function (paymentInstrument, options, instructionDetails, order) {
             var instruction = instructionDetails;
-            instruction.paymentInstrument = CreateRequestHelper.getCCDetails(paymentInstrument, options);
+            instruction.paymentInstrument = createRequestHelper.getCCDetails(paymentInstrument, options);
             if (instruction.paymentInstrument && instruction.paymentInstrument.type !== 'card/tokenized') {
-                instruction.paymentInstrument.billingAddress = CreateRequestHelper.getBillingAddress(order);
+                instruction.paymentInstrument.billingAddress = createRequestHelper.getBillingAddress(order);
             }
             return instruction;
         }

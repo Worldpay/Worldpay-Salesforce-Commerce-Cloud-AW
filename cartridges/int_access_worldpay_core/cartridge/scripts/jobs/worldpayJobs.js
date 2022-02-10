@@ -12,24 +12,33 @@ var UpdateOrderStatus = require('*/cartridge/scripts/order/updateOrderStatus');
  * @return {boolean} returns true/false depending upon success
  */
 function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
-    var Resource = require('dw/web/Resource');
     var Order = require('dw/order/Order');
     var Logger = require('dw/system/Logger');
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var orderStatus = order.status.displayValue;
+    var orderStatusCode = order.getStatus().valueOf();
     var updateStatus = serviceResponseLastEvent;
     var status;
     var updateOrderStatusResult;
-    if ('FAILED'.equalsIgnoreCase(orderStatus) && ('AUTHORIZED'.equalsIgnoreCase(updateStatus))) {
-        OrderManager.undoFailOrder(order);
-        OrderManager.placeOrder(order);
+    Logger.getLogger('worldpay').debug('Update Order Status : ' + updateStatus + ' for Order Number : ' + order.orderNo + ' Current status: ' + orderStatus);
+    if (orderStatusCode === Order.ORDER_STATUS_FAILED && (worldpayConstants.AUTHORIZED.equalsIgnoreCase(updateStatus))) {
+        let undoFailOrderStatus = OrderManager.undoFailOrder(order);
+        if (undoFailOrderStatus.isError) {
+            Logger.getLogger('worldpay').debug('Update Order Status : Job Failed during undoFailOrder : ' + undoFailOrderStatus);
+        }
+        let placeOrderStatus = OrderManager.placeOrder(order);
+        if (placeOrderStatus.isError) {
+            Logger.getLogger('worldpay').debug('Update Order Status : Job Failed after undoFailOrder\'s place order : ' + placeOrderStatus);
+        }
         orderStatus = order.status.displayValue;
     }
-    if (Resource.msg('notification.paymentStatus.AUTHORISED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
-        if (!('OPEN'.equalsIgnoreCase(orderStatus) || 'COMPLETED'.equalsIgnoreCase(orderStatus) || 'NEW'.equalsIgnoreCase(orderStatus))) {
+    if (worldpayConstants.AUTHORIZED.equalsIgnoreCase(updateStatus)) {
+        if (!(orderStatusCode === Order.ORDER_STATUS_OPEN || orderStatusCode === Order.ORDER_STATUS_COMPLETED || orderStatusCode === Order.ORDER_STATUS_NEW)) {
             Transaction.wrap(function () {
                 status = OrderManager.placeOrder(order);
             });
             if (status.isError()) {
+                Logger.getLogger('worldpay').debug('Update Order Status : Place order for order num: ' + order.orderNo + ' failed. Order\'s current status: ' + orderStatus);
                 return false;
             }
         }
@@ -37,12 +46,13 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
             updateOrderStatusResult = UpdateOrderStatus.updateOrderStatus(order, serviceResponse, updateStatus, null);
         });
         return updateOrderStatusResult.success;
-    } else if (Resource.msg('notification.paymentStatus.REFUSED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
-        if (!('CANCELLED'.equalsIgnoreCase(orderStatus) || 'FAILED'.equalsIgnoreCase(orderStatus))) {
+    } else if (worldpayConstants.REFUSED.equalsIgnoreCase(updateStatus)) {
+        if (!(orderStatusCode === Order.ORDER_STATUS_CANCELLED || orderStatusCode === Order.ORDER_STATUS_FAILED)) {
             Transaction.wrap(function () {
                 status = OrderManager.failOrder(order, true);
             });
             if (status.isError()) {
+                Logger.getLogger('worldpay').debug('Update Order Status : ' + updateStatus + ' for Order: ' + order.orderNo + ' Failed');
                 return false;
             }
         }
@@ -50,15 +60,16 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
             updateOrderStatusResult = UpdateOrderStatus.updateOrderStatus(order, serviceResponse, updateStatus, null);
         });
         return updateOrderStatusResult.success;
-    } else if (Resource.msg('notification.paymentStatus.CANCELLED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
-        if ('CANCELLED'.equalsIgnoreCase(orderStatus)) {
+    } else if (worldpayConstants.CANCELLEDSTATUS.equalsIgnoreCase(updateStatus)) {
+        if (orderStatusCode === Order.ORDER_STATUS_CANCELLED) {
+            Logger.getLogger('worldpay').debug('Update Order Status : ' + updateStatus);
             Transaction.wrap(function () {
-                if (order.getStatus().valueOf() === Order.ORDER_STATUS_CREATED) {
+                if (orderStatusCode === Order.ORDER_STATUS_CREATED) {
                     status = OrderManager.failOrder(order, true);
                 } else {
                     status = OrderManager.cancelOrder(order);
                 }
-                Logger.debug('Worldpay Job | Update Order Status : CANCELLED : {0} : Status : {1}', order.orderNo, status.message);
+                Logger.debug('Update Order Status : CANCELLED : {0} : Status : {1}', order.orderNo, status.message);
             });
             if (status.isError()) {
                 return false;
@@ -66,22 +77,24 @@ function updateOrderStatus(order, serviceResponseLastEvent, serviceResponse) {
         }
         updateOrderStatusResult = UpdateOrderStatus.updateOrderStatus(order, serviceResponse, updateStatus, null);
         return updateOrderStatusResult.success;
-    } else if (Resource.msg('notification.paymentStatus.EXPIRED', 'worldpay', null).equalsIgnoreCase(updateStatus)) {
+    } else if (worldpayConstants.EXPIRED.equalsIgnoreCase(updateStatus)) {
         Transaction.wrap(function () {
             status = OrderManager.failOrder(order, true);
         });
         if (status.isError()) {
+            Logger.getLogger('worldpay').debug('Update Order Status : Payment : ' + updateStatus + ' for Order: ' + order.orderNo);
             return false;
         }
         Transaction.wrap(function () {
             updateOrderStatusResult = UpdateOrderStatus.updateOrderStatus(order, serviceResponse, updateStatus, null);
         });
         return updateOrderStatusResult.success;
-    } else if (Resource.msg('notification.paymentStatus.CAPTURED', 'worldpay', null).equalsIgnoreCase(updateStatus) && ('CREATED').equalsIgnoreCase(orderStatus)) {
+    } else if (worldpayConstants.CAPTURED.equalsIgnoreCase(updateStatus) && orderStatusCode === Order.ORDER_STATUS_CREATED) {
         Transaction.wrap(function () {
             status = OrderManager.placeOrder(order);
         });
         if (status.isError()) {
+            Logger.getLogger('worldpay').debug('Update Order Status : Order ' + order.orderNo + ' failed after : ' + updateStatus + ' Place order Status: ' + status);
             return false;
         }
 

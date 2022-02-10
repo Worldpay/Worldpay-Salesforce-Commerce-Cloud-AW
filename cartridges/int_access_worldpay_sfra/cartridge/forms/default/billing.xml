@@ -10,7 +10,8 @@
 
     <include formid="creditCardFields" name="creditCard"/>
 
-    <include formid="billingUserFields" name="billingUser"/>
+    <include formid="contactInfoFields" name="contactInfo"/>
 
+    <include formid="achFields" name="ach"/>
 
 </form>

@@ -1,0 +1,18 @@
+<script>//common/scripts.isml</script>
+<script defer type="text/javascript" src="${URLUtils.staticURL('/js/main.js')}"></script>
+<isloop items="${ require('*/cartridge/scripts/assets.js').scripts }" var="script">
+    <script defer type="text/javascript" src="${script.src}"
+        <isif condition="${script.integrity != null}">integrity="${script.integrity}" crossorigin="anonymous"></isif>
+        >
+    </script>
+</isloop>
+
+<iscomment>This is to handle browser back scenarios in redirect payments</iscomment>
+<isinclude url="${URLUtils.url('Checkout-HandleBrowserBack')}" />
+
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('isQuickCheckoutEnabled')}">
+    <isset name="threeDSType" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('AWPdstype').value}" scope="page" />
+    <div class="instant-pay-modal" data-threedstype="${threeDSType}">
+    </div>
+    <script type="text/javascript" src="${URLUtils.staticURL('/js/instantCheckout.js')}"></script>
+</isif>

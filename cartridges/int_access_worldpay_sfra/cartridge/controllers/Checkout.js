@@ -25,6 +25,7 @@ var Transaction = require('dw/system/Transaction');
  */
 server.prepend('Begin', server.middleware.https, consentTracking.consent, csrfProtection.generateToken, function (req, res, next) {
     var errorMessage = null;
+    var Logger = require('dw/system/Logger');
     if (undefined !== req.querystring.placeerror && req.querystring.placeerror) {
         errorMessage = req.querystring.placeerror;
     }
@@ -36,8 +37,10 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent, csrfPr
         });
 
         if (errorMessage) {
+            Logger.getLogger('worldpay').debug('ErrorOccured : Redirecting from Checkout-Begin to Checkout-Begin errorMessage =' + errorMessage);
             res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder', 'placeerror', errorMessage));
         } else {
+            Logger.getLogger('worldpay').debug('ErrorOccured : Redirecting from Checkout-Begin to Checkout-Begin');
             res.redirect(URLUtils.url('Checkout-Begin', 'stage', 'placeOrder'));
         }
 
@@ -47,4 +50,18 @@ server.prepend('Begin', server.middleware.https, consentTracking.consent, csrfPr
     return next();
 });
 
+server.get('HandleBrowserBack', server.middleware.include, function (req, res, next) {
+    if (!empty(session.privacy.isInstantPurchaseBasket)) {
+        delete session.privacy.isInstantPurchaseBasket;
+    }
+    if (!empty(session.privacy.currentOrderNo)) {
+        var OrderMgr = require('dw/order/OrderMgr');
+
+        Transaction.wrap(function () {
+            OrderMgr.failOrder(OrderMgr.getOrder(session.privacy.currentOrderNo), true);
+        });
+        delete session.privacy.currentOrderNo;
+    }
+    return next();
+});
 module.exports = server.exports();

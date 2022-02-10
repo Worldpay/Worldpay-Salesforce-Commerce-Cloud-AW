@@ -26,9 +26,27 @@ function failImpl(order, errorMessage) {
         }
     });
     if (orderstatus && !orderstatus.isError()) {
-        return {error: false};
+        return { error: false };
     }
-    return {error: true, errorMessage: errorMessage};
+    return { error: true, errorMessage: errorMessage };
+}
+
+/**
+ * get value of configured label
+ * @param {string} labelName - label name
+ * @param {string} typeOfLabel - type of Label
+ * @return {string} returns label value
+ */
+function getConfiguredLabel(labelName, typeOfLabel) {
+    var Site = require('dw/system/Site');
+    var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+    var Resource = require('dw/web/Resource');
+    var isConfigurableLabelEnabled = Site.getCurrent().getCustomPreferenceValue('EnableConfigurableLabels');
+    var labelNameValuePairCustomObject = CustomObjectMgr.getCustomObject('ConfiguredLabels', labelName);
+    if (isConfigurableLabelEnabled && labelNameValuePairCustomObject && labelNameValuePairCustomObject.custom.labelValue) {
+        return labelNameValuePairCustomObject.custom.labelValue;
+    }
+    return Resource.msg(labelName, typeOfLabel, null);
 }
 
 /**
@@ -65,75 +83,99 @@ function calculateNonGiftCertificateAmount(order) {
     return amountOpen;
 }
 
+/**
+ * Method identifies the sensitive data and prevents logging them.
+ * @param {XML} orderJSONString - Request XML
+ * @return {XML} return the XML
+ */
+function getLoggableRequestAWP(orderJSONString) {
+    var messgaeString = JSON.stringify(orderJSONString);
+    var mapObj = [{ regex: /cardNumber\\":\\".*?\\"/g, val: 'cardNumber\\" : \\"***\\"' },
+        { regex: /cardHolderName\\":\\".*?\\"/g, val: 'cardHolderName\\" : \\"***\\"' },
+        { regex: /month\\":[0-9]*,/g, val: 'month\\" : \\"***\\",' },
+        { regex: /year\\":..../g, val: 'year\\" : \\"***\\" ' },
+        { regex: /cvc\\":\\"[0-9]*\\",/g, val: 'cvc\\" : \\"***\\",' },
+        { regex: /cvn\\":\\"[0-9]*\\",/g, val: 'cvn\\" : \\"***\\",' },
+        { regex: /email\\":\\".*?\\"/g, val: 'email\\" : \\"***\\"' },
+        { regex: /phoneNumber\\":\\".*?\\"/g, val: 'phoneNumber\\" : \\"***\\"' },
+        { regex: /jwt\\" : \\".*?\\",/g, val: 'jwt\\" : \\"***\\",' },
+        { regex: /bin\\" : \\".*?\\"/g, val: 'bin\\" : \\"***\\"' },
+        { regex: /cvc\\":\\"[0-9]*\\"/g, val: 'cvc\\" : \\"***\\"' },
+        { regex: /cvn\\":\\"[0-9]*\\"/g, val: 'cvn\\" : \\"***\\"' }
+    ];
+    mapObj.forEach(function (regex) {
+        messgaeString = messgaeString.replace(regex.regex, regex.val);
+    });
+    var parsedmessgaeString = JSON.parse(messgaeString);
+    return parsedmessgaeString;
+}
 
 /**
  * Sends the order JSON/request JSON to the server via service call and returns the answer or null if not successfull
  * @param {Object} requestObj - Request JSON Object
  * @param {Object} requestHeader - request header
  * @param {Object} preferences - preferences object
- * @param {String} serviceID - ID of service to be used
- * @param {String} serviceURL - URL endpoint for service call
- * @param {String} requestMethod - request method for service call
+ * @param {string} serviceID - ID of service to be used
+ * @param {string} serviceEndpoint - URL endpoint for service call
+ * @param {string} requestMethod - request method for service call
  * @return {Object} return the result
  */
-
 function serviceCallAWP(requestObj, requestHeader, preferences, serviceID, serviceEndpoint, requestMethod) {
     var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-    var Encoding = require('dw/crypto/Encoding');
-    var Bytes = require('dw/util/Bytes');
     var orderJSONString = JSON.stringify(requestObj);
     var service;
     var result;
     try {
         service = ServiceRegistry.createService(serviceID, {
-                createRequest: function (svc, message) {
-
-                    if (!empty(requestHeader)) {
-                        Object.keys(requestHeader).forEach(function (key) {
-                            svc.addHeader(key, requestHeader[key]);
-                        });
-                    }
-                    if (!empty(requestMethod)) {
-                        svc.setRequestMethod(requestMethod);
-                    }
-                    return message;
-                },
-                parseResponse: function (svc, client) {
-                    return client.text;
-                },
-                filterLogMessage: function (message) {
-                    var messgaeString = JSON.stringify(message);
-                    var mapObj = [{regex: /cardNumber\\":\\".*?\\"/g, val: 'cardNumber\\" : \\"***\\"'},
-                        {regex: /cardHolderName\\":\\".*?\\"/g, val: 'cardHolderName\\" : \\"***\\"'},
-                        {regex: /month\\":[0-9]*,/g, val: 'month\\" : \\"***\\",'},
-                        {regex: /year\\":..../g, val: 'year\\" : \\"***\\" '},
-                        {regex: /cvc\\":\\"[0-9]*\\",/g, val: 'cvc\\" : \\"***\\",'},
-                        {regex: /cvn\\":\\"[0-9]*\\",/g, val: 'cvn\\" : \\"***\\",'},
-                        {regex: /email\\":\\".*?\\"/g, val: 'email\\" : \\"***\\"'},
-                        {regex: /phoneNumber\\":\\".*?\\"/g, val: 'phoneNumber\\" : \\"***\\"'},
-                        {regex: /jwt\\":\\".*?\\",/g, val: 'jwt\\" : \\"***\\",'},
-                        {regex: /bin\\":\\".*?\\"/g, val: 'bin\\" : \\"***\\"'}
-                    ];
-                    mapObj.forEach(function (regex) {
-                        messgaeString = messgaeString.replace(regex.regex, regex.val);
+            createRequest: function (svc, message) {
+                if (!empty(requestHeader)) {
+                    Object.keys(requestHeader).forEach(function (key) {
+                        svc.addHeader(key, requestHeader[key]);
                     });
-                    var parsedmessgaeString = JSON.parse(messgaeString);
-                    return parsedmessgaeString;
-                },
-                mockCall: function () {
-                    return {
-                        statusCode: 200,
-                        statusMessage: "Form post successful",
-                        text: "MOCK RESPONSE (" + svc.URL + ")"
-                    };
                 }
-
+                if (!empty(requestMethod)) {
+                    svc.setRequestMethod(requestMethod);
+                }
+                return message;
+            },
+            parseResponse: function (svc, client) {
+                return client.text;
+            },
+            filterLogMessage: function (message) {
+                var messgaeString = JSON.stringify(message);
+                var mapObj = [{ regex: /cardNumber\\":\\".*?\\"/g, val: 'cardNumber\\" : \\"***\\"' },
+                    { regex: /cardHolderName\\":\\".*?\\"/g, val: 'cardHolderName\\" : \\"***\\"' },
+                    { regex: /month\\":[0-9]*,/g, val: 'month\\" : \\"***\\",' },
+                    { regex: /year\\":..../g, val: 'year\\" : \\"***\\" ' },
+                    { regex: /cvc\\":\\"[0-9]*\\",/g, val: 'cvc\\" : \\"***\\",' },
+                    { regex: /cvn\\":\\"[0-9]*\\",/g, val: 'cvn\\" : \\"***\\",' },
+                    { regex: /email\\":\\".*?\\"/g, val: 'email\\" : \\"***\\"' },
+                    { regex: /phoneNumber\\":\\".*?\\"/g, val: 'phoneNumber\\" : \\"***\\"' },
+                    { regex: /jwt\\":\\".*?\\",/g, val: 'jwt\\" : \\"***\\",' },
+                    { regex: /bin\\":\\".*?\\"/g, val: 'bin\\" : \\"***\\"' },
+                    { regex: /cvc\\":\\"[0-9]*\\"/g, val: 'cvc\\" : \\"***\\"' },
+                    { regex: /cvn\\":\\"[0-9]*\\"/g, val: 'cvn\\" : \\"***\\"' }
+                ];
+                mapObj.forEach(function (regex) {
+                    messgaeString = messgaeString.replace(regex.regex, regex.val);
+                });
+                var parsedmessgaeString = JSON.parse(messgaeString);
+                return parsedmessgaeString;
+            },
+            mockCall: function () {
+                return {
+                    statusCode: 200,
+                    statusMessage: 'Form post successful',
+                    text: 'MOCK RESPONSE (' + svc.URL + ')'
+                };
             }
-        );
-        //Log masked sensitive data in custom debug log
+
+        }
+    );
+        // Log masked sensitive data in custom debug log
         Logger.getLogger('worldpay').debug('Request: ' + getLoggableRequestAWP(orderJSONString));
         // When we need to log without masking in custom debug log
-        //Logger.getLogger('worldpay').debug('Request: ' + orderJSONString);
+        // Logger.getLogger('worldpay').debug('Request: ' + orderJSONString);
         if (!empty(serviceEndpoint)) {
             service.setURL(service.getURL() + '/' + serviceEndpoint);
         }
@@ -151,71 +193,51 @@ function serviceCallAWP(requestObj, requestHeader, preferences, serviceID, servi
 }
 
 /**
- * Method identifies the sensitive data and prevents logging them.
- * @param {XML} requestXML - Request XML
- * @return {XML} return the XML
+ * Sends the order JSON/request JSON to the server via service call for Partial Actions and returns the answer or null if not successfull
+ * @param {Object} request - Request JSON Object
+ * @param {Object} requestHeader - request header
+ * @param {string} serviceID - ID of service to be used
+ * @param {string} serviceURL - URL endpoint for auth service call
+ * @param {string} requestMethod - request method for service call
+ * @return {Object} return the result
  */
-function getLoggableRequestAWP(orderJSONString) {
-    var messgaeString = JSON.stringify(orderJSONString);
-    var mapObj = [{regex: /cardNumber\\":\\".*?\\"/g, val: 'cardNumber\\" : \\"***\\"'},
-        {regex: /cardHolderName\\":\\".*?\\"/g, val: 'cardHolderName\\" : \\"***\\"'},
-        {regex: /month\\":[0-9]*,/g, val: 'month\\" : \\"***\\",'},
-        {regex: /year\\":..../g, val: 'year\\" : \\"***\\" '},
-        {regex: /cvc\\":\\"[0-9]*\\",/g, val: 'cvc\\" : \\"***\\",'},
-        {regex: /cvn\\":\\"[0-9]*\\",/g, val: 'cvn\\" : \\"***\\",'},
-        {regex: /email\\":\\".*?\\"/g, val: 'email\\" : \\"***\\"'},
-        {regex: /phoneNumber\\":\\".*?\\"/g, val: 'phoneNumber\\" : \\"***\\"'},
-        {regex: /jwt\\" : \\".*?\\",/g, val: 'jwt\\" : \\"***\\",'},
-        {regex: /bin\\" : \\".*?\\"/g, val: 'bin\\" : \\"***\\"'}
-    ];
-    mapObj.forEach(function (regex) {
-        messgaeString = messgaeString.replace(regex.regex, regex.val);
-    });
-    var parsedmessgaeString = JSON.parse(messgaeString);
-    return parsedmessgaeString;
-}
-
-// partial actions
 function serviceCallPartialActions(request, requestHeader, serviceID, serviceURL, requestMethod) {
     var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-    var Encoding = require('dw/crypto/Encoding');
-    var Bytes = require('dw/util/Bytes');
     var orderJSONString = JSON.stringify(request);
     var service;
     var result;
     try {
         service = ServiceRegistry.createService(serviceID, {
-                createRequest: function (svc, message) {
-                    if (!empty(requestHeader)) {
-                        Object.keys(requestHeader).forEach(function (key) {
-                            svc.addHeader(key, requestHeader[key]);
-                        });
-                    }
-                    if (!empty(requestMethod)) {
-                        svc.setRequestMethod(requestMethod);
-                    }
-
-                    return message;
-                },
-                parseResponse: function (svc, client) {
-                    return client.text;
-                },
-                filterLogMessage: function (message) {
-                    var messgaeString = JSON.stringify(message);
-
-                    var parsedmessgaeString = JSON.parse(messgaeString);
-                    return parsedmessgaeString;
-
-                },
-                mockCall: function () {
-                    return {
-                        statusCode: 200,
-                        statusMessage: "Form post successful",
-                        text: "MOCK RESPONSE (" + svc.URL + ")"
-                    };
+            createRequest: function (svc, message) {
+                if (!empty(requestHeader)) {
+                    Object.keys(requestHeader).forEach(function (key) {
+                        svc.addHeader(key, requestHeader[key]);
+                    });
                 }
+                if (!empty(requestMethod)) {
+                    svc.setRequestMethod(requestMethod);
+                }
+
+                return message;
+            },
+            parseResponse: function (svc, client) {
+                return client.text;
+            },
+            filterLogMessage: function (message) {
+                var messgaeString = JSON.stringify(message);
+
+                var parsedmessgaeString = JSON.parse(messgaeString);
+                return parsedmessgaeString;
+            },
+            mockCall: function () {
+                return {
+                    statusCode: 200,
+                    statusMessage: 'Form post successful',
+                    text: 'MOCK RESPONSE (' + svc.URL + ')'
+                };
             }
-        );
+        }
+    );
         if (!empty(serviceURL)) {
             service.setURL(serviceURL);
         }
@@ -232,48 +254,112 @@ function serviceCallPartialActions(request, requestHeader, serviceID, serviceURL
     }
 }
 
+/**
+ * Service call to resolve token conflicts
+ * @param {Object} requestHeader - Contains header of request to be sent
+ * @param {string} serviceID - Contains payment service id
+ * @param {string} serviceURL - Contains conflict URL
+ * @param {string} requestMethod - PUT
+ * @returns {Object} returns result object
+ */
+function updateTokenServiceCall(requestHeader, serviceID, serviceURL, requestMethod) {
+    var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
+    var service;
+    var result;
+    try {
+        service = ServiceRegistry.createService(serviceID, {
+            createRequest: function (svc, message) {
+                if (!empty(requestHeader)) {
+                    Object.keys(requestHeader).forEach(function (key) {
+                        svc.addHeader(key, requestHeader[key]);
+                    });
+                }
+                if (!empty(requestMethod)) {
+                    svc.setRequestMethod(requestMethod);
+                }
+
+                return message;
+            },
+            parseResponse: function (svc, client) {
+                return client.text;
+            },
+            filterLogMessage: function (message) {
+                var messgaeString = JSON.stringify(message);
+
+                var parsedmessgaeString = JSON.parse(messgaeString);
+                return parsedmessgaeString;
+            },
+            mockCall: function () {
+                return {
+                    statusCode: 200,
+                    statusMessage: 'Form post successful',
+                    text: 'MOCK RESPONSE (' + svc.URL + ')'
+                };
+            }
+        });
+        if (!empty(serviceURL)) {
+            service.setURL(serviceURL);
+        }
+        // Make the service call here
+        result = service.call();
+        if (result == null || service == null || result.getStatus().equals('SERVICE_UNAVAILABLE')) {
+            Logger.getLogger('worldpay').error('WORLDPAY RESULT IS EMPTY ' + result + ' OR SERVICE IS EMPTY ' + service);
+            return result;
+        }
+        return result;
+    } catch (ex) {
+        Logger.getLogger('worldpay').error('WORLDPAY SERVICE EXCEPTION: ' + ex);
+        return null;
+    }
+}
+
+/**
+ *  Service call to create servuce registry
+ * @param {Object} requestHeader - Contains header of request to be sent
+ * @param {string} serviceID - Contains payment service id
+ * @param {string} serviceURL - Contains conflict URL
+ * @param {string} requestMethod - Request method type
+ * @returns {Object} returns result object
+ */
 function serviceCallWithURL(requestHeader, serviceID, serviceURL, requestMethod) {
     var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-    var Encoding = require('dw/crypto/Encoding');
-    var Bytes = require('dw/util/Bytes');
     var orderJSONString = '';
     var service;
     var result;
     try {
         service = ServiceRegistry.createService(serviceID, {
-                createRequest: function (svc, message) {
-                    if (!empty(requestHeader)) {
-                        Object.keys(requestHeader).forEach(function (key) {
-                            svc.addHeader(key, requestHeader[key]);
-                        });
-                    }
-                    if (!empty(requestMethod)) {
-                        svc.setRequestMethod(requestMethod);
-                    }
-
-                    return message;
-                },
-
-
-                parseResponse: function (svc, client) {
-                    return client.text;
-                },
-                filterLogMessage: function (message) {
-                    var messgaeString = JSON.stringify(message);
-
-                    var parsedmessgaeString = JSON.parse(messgaeString);
-                    return parsedmessgaeString;
-
-                },
-                mockCall: function () {
-                    return {
-                        statusCode: 200,
-                        statusMessage: "Form post successful",
-                        text: "MOCK RESPONSE (" + svc.URL + ")"
-                    };
+            createRequest: function (svc, message) {
+                if (!empty(requestHeader)) {
+                    Object.keys(requestHeader).forEach(function (key) {
+                        svc.addHeader(key, requestHeader[key]);
+                    });
+                }
+                if (!empty(requestMethod)) {
+                    svc.setRequestMethod(requestMethod);
                 }
 
+                return message;
+            },
+
+
+            parseResponse: function (svc, client) {
+                return client.text;
+            },
+            filterLogMessage: function (message) {
+                var messgaeString = JSON.stringify(message);
+
+                var parsedmessgaeString = JSON.parse(messgaeString);
+                return parsedmessgaeString;
+            },
+            mockCall: function () {
+                return {
+                    statusCode: 200,
+                    statusMessage: 'Form post successful',
+                    text: 'MOCK RESPONSE (' + svc.URL + ')'
+                };
             }
+
+        }
         );
         Logger.getLogger('worldpay').debug('Request: ' + orderJSONString);
         if (!empty(serviceURL)) {
@@ -300,17 +386,13 @@ function serviceCallWithURL(requestHeader, serviceID, serviceURL, requestMethod)
 function getErrorMessage(errorCode) {
     var errorMessage = null;
     var errorProperty = 'worldpay.error.code' + errorCode;
-    var Resource = require('dw/web/Resource');
-    errorMessage = Resource.msgf(errorProperty, 'worldpayerror', null);
-
+    errorMessage = getConfiguredLabel(errorProperty, 'worldpayError');
     // Generic Error Message set when ErrorCode is empty or ErrorCode is not valid.
     if (!errorCode) {
-        errorMessage = Resource.msgf('worldpay.error.generalerror', 'worldpayerror', null);
+        errorMessage = getConfiguredLabel('worldpay.error.generalerror', 'worldpayError');
     }
-
     return errorMessage;
 }
-
 
 /**
  * Parses the server response
@@ -365,7 +447,7 @@ function addNotifyCustomObjectAWP(JSONString) {
         errorCode = WorldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + JSONString + '  : ' + ex);
-        return {error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString};
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString };
     }
 
     var orderCode;
@@ -388,7 +470,7 @@ function addNotifyCustomObjectAWP(JSONString) {
         errorCode = WorldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + JSONString + '  : ' + ex);
-        return {error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString};
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString };
     }
 
     try {
@@ -403,12 +485,12 @@ function addNotifyCustomObjectAWP(JSONString) {
             COA.custom.timeStamp = new Date();
             COA.custom.orderNo = orderCode;
         });
-        return {success: true};
+        return { success: true };
     } catch (e) {
         errorCode = WorldpayConstants.NOTIFYERRORCODE111;
         errorMessage = getErrorMessage(errorCode);
         Logger.getLogger('worldpay').error('Order Notification : Add Custom Object : ' + errorCode + ' : ' + errorMessage + '  : ' + JSONString + '  : ' + e);
-        return {error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString};
+        return { error: true, errorCode: errorCode, errorMessage: errorMessage, JSONString: JSONString };
     }
 }
 
@@ -429,13 +511,17 @@ function validateIP(requestRemoteAddress) {
         var end = Number(Site.getCurrent().getCustomPreferenceValue('WorldpayNotificationIPAddressesEnd'));
         if (Number(currentIPAddress) >= start &&
             Number(currentIPAddress) <= end) {
-            return {success: true, error: false};
+            return { success: true, error: false };
         }
         Logger.getLogger('worldpay').error('ValidateIP : start : ' + start + ' end: ' + end + ' currentIPAddress: ' + currentIPAddress);
     }
-    return {error: true};
+    return { error: true };
 }
 
+/**
+ * @param {dw.order.LineItemCtnr} lineItemCtnr - Current users's basket/order
+ * @returns {number} amountOpen - amountOpen
+ */
 function calculateNonGiftCertificateAmountFromBasket(lineItemCtnr) {
     var totalAmount;
     var Money = require('dw/value/Money');
@@ -477,19 +563,53 @@ function getPaymentInstrument(order) {
     return paymentIntrument;
 }
 
+/**
+ * This method builds simple object to serialize into json.
+ * @param {string} errorCode - error code
+ * @returns {Object} o - Error JSON object
+ */
+function getErrorJson(errorCode) {
+    var errorMsg = getErrorMessage(errorCode);
+    var o = { success: false };
+    if (errorCode) {
+        o.error = errorCode + ' : ' + errorMsg;
+    }
+    return JSON.stringify(o);
+}
+
+/**
+ * This method builds simple object to serialize into json.
+ * @param {list} statusList - Order statusList
+ * @returns {Object} object - Allstatus object
+ */
+function getAllStatusJson(statusList) {
+    var object = {};
+    if (statusList && statusList.size() > 0) {
+        object.statusList = [];
+        for (var i = 0, len = statusList.length; i < len; i++) {
+            object.statusList.push({ status: statusList[i] });
+        }
+    }
+    return JSON.stringify(object);
+}
+
 /** Exported functions **/
 module.exports = {
     failImpl: failImpl,
+    getConfiguredLabel: getConfiguredLabel,
     validateIP: validateIP,
     calculateNonGiftCertificateAmount: calculateNonGiftCertificateAmount,
     calculateNonGiftCertificateAmountFromBasket: calculateNonGiftCertificateAmountFromBasket,
     serviceCallAWP: serviceCallAWP,
     getErrorMessage: getErrorMessage,
     serviceCallPartialActions: serviceCallPartialActions,
+    updateTokenServiceCall: updateTokenServiceCall,
     parseResponse: parseResponse,
     serviceCallWithURL: serviceCallWithURL,
     updateTransactionStatus: updateTransactionStatus,
     addNotifyCustomObjectAWP: addNotifyCustomObjectAWP,
     getPaymentInstrument: getPaymentInstrument,
-    getLoggableRequestAWP: getLoggableRequestAWP
+    getLoggableRequestAWP: getLoggableRequestAWP,
+    getErrorJson: getErrorJson,
+    getAllStatusJson: getAllStatusJson
 };

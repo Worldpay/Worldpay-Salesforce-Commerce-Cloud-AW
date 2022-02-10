@@ -40,7 +40,6 @@ function getTokenPaymentInstrument(customerPaymentInstruments, serviceResponse) 
 */
 function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMonth, ccExpiryYear, ccHolder, ccToken, tokenPaymentInstrument, tokenExpiryDateTime) {
     var PaymentInstrument = require('dw/order/PaymentInstrument');
-    var Site = require('dw/system/Site');
     var creditCardNumber = ccNumber;
     var creditCardExpirationMonth = ccExpiryMonth;
     var creditCardExpirationYear = ccExpiryYear;
@@ -70,16 +69,16 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
             paymentInstr.setCreditCardExpirationYear(typeof (creditCardExpirationYear) === 'object' ? creditCardExpirationYear.valueOf() : creditCardExpirationYear);
         }
         if (!paymentInstr.getCreditCardType() && creditCardType) {
-        	 paymentInstr.setCreditCardType(creditCardType);
+             paymentInstr.setCreditCardType(creditCardType);
         }
         if (!empty(tokenPaymentInstrument)) {
             paymentInstr.custom.awpCCTokenExpiry = parseExpiryDate(tokenExpiryDateTime);
             paymentInstr.custom.awpCCTokenData = tokenPaymentInstrument;
             paymentInstr.setCreditCardToken(ccToken);
         }else{
-        	//assigning an expired token so that a new call can be made in the subsequent payment
-        	paymentInstr.custom.awpCCTokenData = 'expired token';
-        	paymentInstr.custom.awpCCTokenExpiry = new Date();
+            //assigning an expired token so that a new call can be made in the subsequent payment
+            paymentInstr.custom.awpCCTokenData = 'expired token';
+            paymentInstr.custom.awpCCTokenExpiry = new Date();
         }
 
     });
@@ -93,18 +92,18 @@ function copyPaymentCardToInstrument(paymentInstr, ccNumber, ccType, ccExpiryMon
  * @return {Date} date - Date object for the expiry date-time
 */
 function parseExpiryDate(tokenExpiryDateTime){
-	var expiryDate = tokenExpiryDateTime.split('T')[0];
-	var expiryTime = tokenExpiryDateTime.split('T')[1].replace('Z', '');
-	var date = new Date(Number(expiryDate.split('-')[0]),
-						Number(expiryDate.split('-')[1])-1,
-						Number(expiryDate.split('-')[2]));
-	var expiryHour = Number(expiryTime.split(':')[0]);
-	var expiryMinute = Number(expiryTime.split(':')[1]);
-	var expirySecond = Number(expiryTime.split(':')[2]);
-	date.setHours(expiryHour);
-	date.setMinutes(expiryMinute);
-	date.setSeconds(expirySecond);
-	return date;
+    var expiryDate = tokenExpiryDateTime.split('T')[0];
+    var expiryTime = tokenExpiryDateTime.split('T')[1].replace('Z', '');
+    var date = new Date(Number(expiryDate.split('-')[0]),
+                        Number(expiryDate.split('-')[1])-1,
+                        Number(expiryDate.split('-')[2]));
+    var expiryHour = Number(expiryTime.split(':')[0]);
+    var expiryMinute = Number(expiryTime.split(':')[1]);
+    var expirySecond = Number(expiryTime.split(':')[2]);
+    date.setHours(expiryHour);
+    date.setMinutes(expiryMinute);
+    date.setSeconds(expirySecond);
+    return date;
 }
 
 
@@ -115,8 +114,7 @@ function parseExpiryDate(tokenExpiryDateTime){
  * @param {dw.order.PaymentInstrument} paymentInstrument - payment instrument object
 */
 function updatePaymentInstrumentToken(responseData, paymentInstrument) {
-    var StringUtils = require('dw/util/StringUtils');
-    var serviceResponse = responseData.serviceResponse;
+    var serviceResponse = responseData.serviceresponse;
     if (serviceResponse != null && paymentInstrument != null && serviceResponse.tokenPaymentInstrument != null) {
         paymentInstrument.custom.awpCCTokenExpiry = parseExpiryDate(serviceResponse.tokenExpiryDateTime);
         paymentInstrument.custom.awpCCTokenData = serviceResponse.tokenPaymentInstrument;
@@ -165,7 +163,7 @@ function validateTokenServiceResponse (CCTokenRequestResult, paymentInstrument) 
                 var tokenConflictURL = CCTokenRequestResult.serviceResponse.tokenConflictUrl;
                 var conflicts = findConflicts (tokenConflictURL);
                 if (conflicts.length > 0) {
-                    var updateResult = updateTokenConflicts(conflicts, paymentInstrument);
+                    var updateResult = updateTokenConflicts(conflicts, paymentInstrument, tokenConflictURL);
                     if(updateResult.length > 0) {
                         result.success = true;
                         result.solvedConflicts = updateResult;
@@ -221,57 +219,45 @@ function findConflicts(tokenConflictURL) {
     return conflicts;
 }
 
-function updateTokenConflicts (conflictsList, paymentInstrument) {
+/**
+ * Makes the service call to resolve the conflicts and returns all conflicts that were resolved as an array
+ * @param {Object} conflictsList - Contains all conflicts in an array
+ * @param {Object} paymentInstrument - Contains current payment instrument object
+ * @param {String} tokenConflictURL - Contains conflict URL
+ * @returns all conflicts that were resolved
+ */
+function updateTokenConflicts (conflictsList, paymentInstrument, tokenConflictURL) {
     // expiry or cardHolderName
     var Logger = require('dw/system/Logger');
     var conflictResolutionResponse; var updatedConflicts = [];
     if (conflictsList && conflictsList.length > 0) {
-        conflictsList.forEach(function(conflictObj) {
-            if (conflictObj.conflict == 'cardHolder') {
-                Logger.getLogger('worldpay').debug('Update token service triggered for cardHolderName update');
-                conflictResolutionResponse = ServiceFacade.updateToken(conflictObj.cardHolder, conflictObj.cardHolderURL);
-            } else if (conflictObj.conflict == 'expDate') {
-                Logger.getLogger('worldpay').debug('Update token service triggered for cardExpiryDate update');
-                conflictResolutionResponse = ServiceFacade.updateToken(conflictObj.expDate, conflictObj.expDateURL);
-            }
-
-            if (conflictResolutionResponse.success) {
-                updatedConflicts.push(conflictObj.conflict);
-                Transaction.wrap(function () {
-                    if (conflictObj.conflict == 'cardHolder') {
-                        paymentInstrument.custom.nameTokenConflictResolved = 'true';
-                    } else if (conflictObj.conflict == 'expDate') {
-                        paymentInstrument.custom.dateTokenConflictResolved = 'true';
-                    }
-                });
-            } else {
-                return updatedConflicts;
-            }
-        });
+        Logger.getLogger('worldpay').debug('Update token service triggered for cardHolderName and cardExpiryDate update');
+        conflictResolutionResponse = ServiceFacade.updateTokenDetails(tokenConflictURL);
+        if (conflictResolutionResponse.success) {
+            updatedConflicts = conflictsList;
+            Transaction.wrap(function () {
+                paymentInstrument.custom.nameTokenConflictResolved = 'true';
+                paymentInstrument.custom.dateTokenConflictResolved = 'true';
+            });
+        } else {
+            return updatedConflicts;
+        }
     }
     return updatedConflicts;
 }
 
-function updateTokenConflictsWCsdk (conflictsList) {
+function updateTokenConflictsWCsdk(conflictsList, tokenConflictURL) {
     // expiry or cardHolder
     var Logger = require('dw/system/Logger');
     var conflictResolutionResponse; var updatedConflicts = [];
     if (conflictsList && conflictsList.length > 0) {
-        conflictsList.forEach(function(conflictObj) {
-            if (conflictObj.conflict == 'cardHolder') {
-                Logger.getLogger('worldpay').debug('Update token service triggered for cardHolderName update');
-                conflictResolutionResponse = ServiceFacade.updateToken(conflictObj.cardHolder, conflictObj.cardHolderURL);
-            } else if (conflictObj.conflict == 'expDate') {
-                Logger.getLogger('worldpay').debug('Update token service triggered for cardExpiryDate update');
-                conflictResolutionResponse = ServiceFacade.updateToken(conflictObj.expDate, conflictObj.expDateURL);
-            }
-
-            if (conflictResolutionResponse.success) {
-                updatedConflicts.push(conflictObj.conflict);
-            } else {
-                return updatedConflicts;
-            }
-        });
+        Logger.getLogger('worldpay').debug('Update token service triggered for cardHolderName update');
+        conflictResolutionResponse = ServiceFacade.updateTokenDetails(tokenConflictURL);
+        if (conflictResolutionResponse.success) {
+            updatedConflicts = conflictsList;
+        } else {
+            return updatedConflicts;
+        }
     }
     return updatedConflicts;
 }
@@ -282,7 +268,7 @@ module.exports = {
     removeExistingPaymentInstruments: removeExistingPaymentInstruments,
     copyPaymentCardToInstrument: copyPaymentCardToInstrument,
     getTokenPaymentInstrument: getTokenPaymentInstrument,
-    validateTokenServiceResponse : validateTokenServiceResponse,
-    findConflicts : findConflicts,
-    updateTokenConflictsWCsdk : updateTokenConflictsWCsdk
+    validateTokenServiceResponse: validateTokenServiceResponse,
+    findConflicts: findConflicts,
+    updateTokenConflictsWCsdk: updateTokenConflictsWCsdk
 };

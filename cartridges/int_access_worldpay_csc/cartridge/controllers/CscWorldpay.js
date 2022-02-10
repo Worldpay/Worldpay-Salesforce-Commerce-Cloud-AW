@@ -4,6 +4,9 @@ var server = require('server');
 var params = request.httpParameterMap;
 var Order = require('dw/order/Order');
 
+/**
+* Method that does a form submission, to render the CancelOrder page
+*/
 server.get('CancelOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -18,7 +21,9 @@ server.get('CancelOrder', function (req, res, next) {
     next();
 });
 
-
+/**
+* Method that does a form submission, to render the SettleOrder page
+*/
 server.get('SettleOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -34,6 +39,9 @@ server.get('SettleOrder', function (req, res, next) {
 });
 
 
+/**
+* Method that does a form submission, to render the PartialSettleOrder page
+*/
 server.get('PartialSettleOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -52,6 +60,9 @@ server.get('PartialSettleOrder', function (req, res, next) {
 });
 
 
+/**
+* Method that does a form submission, to render the RefundOrder page
+*/
 server.get('RefundOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -66,7 +77,27 @@ server.get('RefundOrder', function (req, res, next) {
     next();
 });
 
+/**
+* Method that does a form submission, to render the Void Sale page
+*/
+server.get('VoidSale', function (req, res, next) {
+    var orderID = params.order_no.stringValue;
+    var OrderMgr = require('dw/order/OrderMgr');
+    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper');
+    var hourDifference = OrderHelpers.getHourDifference(orderID);
+    var order = OrderMgr.getOrder(orderID);
+    res.render('/order/voidSale', {
+        order: order,
+        requestType: '',
+        hourDifference: hourDifference,
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+    });
+    next();
+});
 
+/**
+* Method that does a form submission, to render the PartialRefundOrder page
+*/
 server.get('PartialRefundOrder', function (req, res, next) {
     var orderID = params.order_no.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -83,6 +114,11 @@ server.get('PartialRefundOrder', function (req, res, next) {
     });
     next();
 });
+
+
+/**
+* Service to trigger Cancel Order Action.
+*/
 server.get('CancelOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -102,6 +138,10 @@ server.get('CancelOrderAction', function (req, res, next) {
     });
     next();
 });
+
+/**
+* Service to trigger Settle Order Action.
+*/
 server.get('SettleOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -122,6 +162,10 @@ server.get('SettleOrderAction', function (req, res, next) {
     next();
 });
 
+
+/**
+* Service to trigger Partial Settle Order Action.
+*/
 server.get('PartialSettleOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -157,6 +201,10 @@ server.get('PartialSettleOrderAction', function (req, res, next) {
     next();
 });
 
+
+/**
+* Service to trigger Refund Order Action.
+*/
 server.get('RefundOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -178,6 +226,9 @@ server.get('RefundOrderAction', function (req, res, next) {
 });
 
 
+/**
+* Service to trigger Partial Refund Order Action.
+*/
 server.get('PartialRefundOrderAction', function (req, res, next) {
     var orderID = params.order_id.stringValue;
     var orderToken = params.order_token.stringValue;
@@ -205,6 +256,29 @@ server.get('PartialRefundOrderAction', function (req, res, next) {
         success = false;
     }
     res.render('/order/partialRefundOrder', {
+        order: order,
+        requestType: 'response',
+        success: success,
+        statusConfirmed: Order.CONFIRMATION_STATUS_CONFIRMED
+    });
+    next();
+});
+
+
+/**
+* Service to trigger Void Sale actions for ACH Pay oders.
+*/
+server.get('VoidSaleAction', function (req, res, next) {
+    var orderID = params.order_id.stringValue;
+    var success = true;
+    var OrderMgr = require('dw/order/OrderMgr');
+    var OrderHelpers = require('*/cartridge/scripts/helpers/worldpayCscOrderHelper.js');
+    var order = OrderMgr.getOrder(orderID);
+    var result = OrderHelpers.voidSale(orderID);
+    if (!result || result.error) {
+        success = false;
+    }
+    res.render('/order/voidSale', {
         order: order,
         requestType: 'response',
         success: success,

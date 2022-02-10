@@ -26,9 +26,9 @@ function getDetailsObject(paymentForm) {
  */
 function verifyCard(card, form) {
     var collections = require('*/cartridge/scripts/util/collections');
-    var Resource = require('dw/web/Resource');
     var PaymentMgr = require('dw/order/PaymentMgr');
     var PaymentStatusCodes = require('dw/order/PaymentStatusCodes');
+    var utils = require('*/cartridge/scripts/common/utils');
 
     var paymentCard = PaymentMgr.getPaymentCard(card.cardType);
     var error = false;
@@ -45,7 +45,7 @@ function verifyCard(card, form) {
     } else {
         formCardNumber.valid = false;
         formCardNumber.error =
-            Resource.msg('error.message.creditnumber.invalid', 'forms', null);
+        utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
         error = true;
     }
 
@@ -55,7 +55,7 @@ function verifyCard(card, form) {
                 case PaymentStatusCodes.CREDITCARD_INVALID_CARD_NUMBER:
                     formCardNumber.valid = false;
                     formCardNumber.error =
-                        Resource.msg('error.message.creditnumber.invalid', 'forms', null);
+                    utils.getConfiguredLabel('error.message.creditnumber.invalid', 'forms');
                     error = true;
                     break;
 
@@ -64,7 +64,7 @@ function verifyCard(card, form) {
                     var expirationYear = form.expirationYear;
                     expirationMonth.valid = false;
                     expirationMonth.error =
-                        Resource.msg('error.message.creditexpiration.expired', 'forms', null);
+                    utils.getConfiguredLabel('error.message.creditexpiration.expired', 'forms');
                     expirationYear.valid = false;
                     error = true;
                     break;

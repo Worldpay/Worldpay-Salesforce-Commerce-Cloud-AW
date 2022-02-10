@@ -264,7 +264,12 @@ function executeOrderProcess(order, req, res, next) {
     }
 
     sendConfirmationEmail(order, req.locale.id);
-    res.redirect(URLUtils.https('Order-Confirm', 'ID', order.orderNo, 'token', order.orderToken));
+    res.render('/checkout/orderConfirmForm', {
+        error: false,
+        orderID: order.orderNo,
+        orderToken: order.orderToken,
+        continueUrl: URLUtils.url('Order-Confirm').toString()
+    });
     return next();
 }
 
@@ -280,7 +285,7 @@ function pendingStatusOrderPlacement(PendingStatus, order, paymentMethod) {
     var error;
     if (undefined === PendingStatus || PendingStatus.equals(WorldpayConstants.OPEN)) {
         if (order.status.value === Order.ORDER_STATUS_FAILED) {
-            error = Utils.worldpayErrorMessage();
+            error = Utils.getErrorMessage();
             return {
                 redirect: true,
                 stage: 'payment',
@@ -294,7 +299,7 @@ function pendingStatusOrderPlacement(PendingStatus, order, paymentMethod) {
             token: order.orderToken
         };
     }
-    error = Utils.worldpayErrorMessage();
+    error = Utils.getErrorMessage();
     if (paymentMethod.equals(WorldpayConstants.KONBINI)) {
         Transaction.wrap(function () {
             OrderMgr.cancelOrder(order);
@@ -331,7 +336,7 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
             Transaction.wrap(function () {
                 order.custom.worldpayMACMissingVal = true;
             });
-            error = Utils.worldpayErrorMessage();
+            error = Utils.getErrorMessage();
             Transaction.wrap(function () { OrderMgr.failOrder(order, true); });
             Logger.getLogger('worldpay').error(' mac issue ');
             return {
@@ -345,7 +350,7 @@ function authStatusOrderPlacement(paymentMethod, paymentStatus, paymentInstrumen
         Transaction.wrap(function () {
             order.custom.worldpayMACMissingVal = true;
         });
-        error = Utils.worldpayErrorMessage();
+        error = Utils.getErrorMessage();
         return {
             redirect: true,
             stage: 'payment',
@@ -373,11 +378,29 @@ function deletWPToken(clearToken) {
     }
 }
 
+/**
+ * Delete the token in session.
+ * @param{string} outcome - the token to be deleted
+ *  @return {boolean} returns an boolean
+ */
+function authenticationRequest3DsOutcome(outcome) {
+    switch (outcome) {
+        case 'bypassed':
+        case 'unavailable':
+        case 'authenticated':
+        case 'notEnrolled':
+            return true;
+        default:
+            return false;
+    }
+}
+
 module.exports = {
     getFirstNonDefaultShipmentWithProductLineItems: base.getFirstNonDefaultShipmentWithProductLineItems,
     ensureNoEmptyShipments: base.ensureNoEmptyShipments,
     getProductLineItem: base.getProductLineItem,
     isShippingAddressInitialized: base.isShippingAddressInitialized,
+    prepareCustomerForm: base.prepareCustomerForm,
     prepareShippingForm: base.prepareShippingForm,
     prepareBillingForm: base.prepareBillingForm,
     copyCustomerAddressToShipment: base.copyCustomerAddressToShipment,
@@ -385,6 +408,7 @@ module.exports = {
     copyShippingAddressToShipment: base.copyShippingAddressToShipment,
     copyBillingAddressToBasket: base.copyBillingAddressToBasket,
     validateFields: base.validateFields,
+    validateCustomerForm: base.validateCustomerForm,
     validateShippingForm: base.validateShippingForm,
     validateBillingForm: base.validateBillingForm,
     validatePayment: validatePayment,
@@ -404,5 +428,6 @@ module.exports = {
     executeOrderProcess: executeOrderProcess,
     authStatusOrderPlacement: authStatusOrderPlacement,
     pendingStatusOrderPlacement: pendingStatusOrderPlacement,
-    deletWPToken: deletWPToken
+    deletWPToken: deletWPToken,
+    authenticationRequest3DsOutcome: authenticationRequest3DsOutcome
 };

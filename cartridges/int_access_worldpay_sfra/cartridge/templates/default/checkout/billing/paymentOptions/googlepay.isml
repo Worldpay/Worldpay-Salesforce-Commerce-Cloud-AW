@@ -29,4 +29,4 @@
 <script src="${URLUtils.staticURL('/js/apm/googlePay.js')}"></script>
 <script async onload="onGooglePayLoaded()" src="https://pay.google.com/gp/p/js/pay.js"></script>
 <input id="gpaytoken" name="gpaytoken" type="hidden" value=""/>
-<div id="gpayerror"> ${Resource.msg('worldpay.googlepay.error', 'worldpay', null)}</div>
+<div id="gpayerror"> ${utils.getConfiguredLabel('worldpay.googlepay.error', 'worldpay')}</div>

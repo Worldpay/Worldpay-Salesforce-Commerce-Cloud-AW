@@ -1,5 +1,6 @@
 'use strict';
 var Site = require('dw/system/Site');
+var server = require('server');
 
 /**
  * Update Token details in customer payment cards
@@ -11,11 +12,11 @@ var Site = require('dw/system/Site');
 function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var Transaction = require('dw/system/Transaction');
-    var PaymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
+    var paymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
     if (customerObj) {
         var wallet = customerObj.getProfile().getWallet();
         var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
-        var matchedPaymentInstrument = PaymentInstrumentUtils.getTokenPaymentInstrument(paymentInstruments, responseData);
+        var matchedPaymentInstrument = paymentInstrumentUtils.getTokenPaymentInstrument(paymentInstruments, responseData);
         var tokenId;
         var tokenPaymentInstrument;
         var tokenExpiryDateTime;
@@ -26,7 +27,7 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
             tokenExpiryDateTime = (responseData) ? responseData.tokenExpiryDateTime : null;
             Transaction.begin();
             newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            newPaymentInstrument = PaymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
+            newPaymentInstrument = paymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
                 paymentInstrument.creditCardType, Number(paymentInstrument.creditCardExpirationMonth), Number(paymentInstrument.creditCardExpirationYear),
                 paymentInstrument.creditCardHolder, tokenId, tokenPaymentInstrument, tokenExpiryDateTime);
             if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&
@@ -44,7 +45,7 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
             tokenExpiryDateTime = (responseData) ? responseData.tokenExpiryDateTime : null;
             Transaction.begin();
             newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            newPaymentInstrument = PaymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
+            newPaymentInstrument = paymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
                    paymentInstrument.creditCardType, Number(paymentInstrument.creditCardExpirationMonth), Number(paymentInstrument.creditCardExpirationYear),
                    paymentInstrument.creditCardHolder, tokenId, tokenPaymentInstrument, tokenExpiryDateTime);
             if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&
@@ -78,19 +79,30 @@ function addOrUpdateToken(responseData, customerObj, paymentInstrument) {
  * @param {dw.order.PaymentInstrument} paymentInstrument - order payment instrument
  * @param {dw.customer.Customer} customerObj - customer object
  * @param {Object} CCTokenRequestResult - token service response
+ * @param {saveCardInConflict} saveCardInConflict - Save card with conflict
+ * @param {preferences} preferences - find 3ds type
  * @returns {Object} returns a JSON object
  */
-function checkAuthorizationAWP(serviceResponse, paymentInstrument, customerObj, CCTokenRequestResult) {
-    var Resource = require('dw/web/Resource');
+function checkAuthorizationAWP(serviceResponse, paymentInstrument, customerObj, CCTokenRequestResult, saveCardInConflict, preferences) {
+    var utils = require('*/cartridge/scripts/common/utils');
     var cardAddResult = null;
     var canSavecard = null;
     var hasUpdateLimitReached = '';
     var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('AWPEnableCCTokenization');
     var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-
     var responseContent = serviceResponse.content;
     var outcome = responseContent.outcome;
-    var tokenServiceResponse = (!empty(CCTokenRequestResult) && !CCTokenRequestResult.error) ? CCTokenRequestResult.serviceResponse : null;
+    var tokenServiceResponse = (!empty(CCTokenRequestResult) && !CCTokenRequestResult.error) ? CCTokenRequestResult.serviceresponse : null;
+    var paymentForm = server.forms.getForm('billing');
+    if (session.privacy.hasUpdateLimitReached) {
+        delete session.privacy.hasUpdateLimitReached;
+    }
+    if (session.privacy.saveCardInConflict) {
+        delete session.privacy.saveCardInConflict;
+    }
+    if (session.privacy.saveCardCheckBoxValue) {
+        delete session.privacy.saveCardCheckBoxValue;
+    }
     if ((outcome.equalsIgnoreCase(WorldpayConstants.AUTHORIZED) && tokenServiceResponse !== null)
         || ((outcome.equalsIgnoreCase(WorldpayConstants.AUTHORIZED)) && paymentInstrument.custom.wpTokenRequested)) {
         if (EnableTokenizationPref && customerObj != null && customerObj.authenticated) {
@@ -101,12 +113,20 @@ function checkAuthorizationAWP(serviceResponse, paymentInstrument, customerObj, 
         }
         if (cardAddResult && cardAddResult.hasUpdateLimitReached === 'yes') {
             hasUpdateLimitReached = cardAddResult.hasUpdateLimitReached;
+            session.privacy.hasUpdateLimitReached = hasUpdateLimitReached;
+        }
+        if (preferences.threeDSType.value.equals('disabled') && saveCardInConflict) {
+            session.privacy.saveCardInConflict = saveCardInConflict;
+        }
+        if (paymentForm.creditCardFields) {
+            session.privacy.saveCardCheckBoxValue = paymentForm.creditCardFields.saveCard.checked;
         }
         return {
             authorized: true,
             echoData: '',
             canSavecard: canSavecard,
-            hasUpdateLimitReached: hasUpdateLimitReached
+            hasUpdateLimitReached: hasUpdateLimitReached,
+            saveCardInConflict: saveCardInConflict
         };
     } else if (outcome.equalsIgnoreCase(WorldpayConstants.AUTHORIZED)) {
         return {
@@ -116,13 +136,13 @@ function checkAuthorizationAWP(serviceResponse, paymentInstrument, customerObj, 
     } else if (!empty(serviceResponse.errorName)) {
         return {
             error: true,
-            errorMessage: Resource.msg('worldpay.error.codecancelled', 'worldpayerror', null)
+            errorMessage: utils.getConfiguredLabel('worldpay.error.codecancelled', 'worldpayError')
         };
     }
     return {
         error: true,
         errorkey: 'worldpay.error.code' + serviceResponse.errorCode,
-        errorMessage: Resource.msg('worldpay.error.code' + serviceResponse.errorCode, 'worldpayerror', null)
+        errorMessage: utils.getErrorMessage(serviceResponse.errorCode)
     };
 }
 
@@ -136,14 +156,14 @@ function checkAuthorizationAWP(serviceResponse, paymentInstrument, customerObj, 
 function addOrUpdateTokenforwebcsdk(responseData, customerObj, paymentInstrument) {
     var PaymentInstrument = require('dw/order/PaymentInstrument');
     var Transaction = require('dw/system/Transaction');
-    var PaymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
+    var paymentInstrumentUtils = require('*/cartridge/scripts/common/paymentInstrumentUtils');
     if (customerObj) {
         var wallet = customerObj.getProfile().getWallet();
         var paymentInstruments = wallet.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD);
         var tokenUrl = {
             tokenUrl: session.privacy.verfiedToken ? session.privacy.verfiedToken : paymentInstrument.custom.awpCCTokenData
         };
-        var matchedPaymentInstrument = PaymentInstrumentUtils.getTokenPaymentInstrument(paymentInstruments, tokenUrl);
+        var matchedPaymentInstrument = paymentInstrumentUtils.getTokenPaymentInstrument(paymentInstruments, tokenUrl);
         var tokenId;
         var tokenPaymentInstrument;
         var tokenExpiryDateTime;
@@ -154,7 +174,7 @@ function addOrUpdateTokenforwebcsdk(responseData, customerObj, paymentInstrument
             tokenExpiryDateTime = paymentInstrument.custom.csdkTokenExp;
             Transaction.begin();
             newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            newPaymentInstrument = PaymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
+            newPaymentInstrument = paymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
                 paymentInstrument.creditCardType, Number(paymentInstrument.creditCardExpirationMonth), Number(paymentInstrument.creditCardExpirationYear),
                 paymentInstrument.creditCardHolder, tokenId, tokenPaymentInstrument, tokenExpiryDateTime);
             if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&
@@ -172,7 +192,7 @@ function addOrUpdateTokenforwebcsdk(responseData, customerObj, paymentInstrument
             tokenExpiryDateTime = paymentInstrument.custom.csdkTokenExp;
             Transaction.begin();
             newPaymentInstrument = wallet.createPaymentInstrument(PaymentInstrument.METHOD_CREDIT_CARD);
-            newPaymentInstrument = PaymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
+            newPaymentInstrument = paymentInstrumentUtils.copyPaymentCardToInstrument(newPaymentInstrument, paymentInstrument.creditCardNumber,
                    paymentInstrument.creditCardType, Number(paymentInstrument.creditCardExpirationMonth), Number(paymentInstrument.creditCardExpirationYear),
                    paymentInstrument.creditCardHolder, tokenId, tokenPaymentInstrument, tokenExpiryDateTime);
             if (!(newPaymentInstrument && newPaymentInstrument.getCreditCardNumber() && newPaymentInstrument.getCreditCardExpirationMonth() &&
@@ -201,7 +221,7 @@ function addOrUpdateTokenforwebcsdk(responseData, customerObj, paymentInstrument
  * @returns {Object} - response
  */
 function checkAuthorizationWCSDK(serviceResponse, paymentInstrument, customerObj) {
-    var Resource = require('dw/web/Resource');
+    var utils = require('*/cartridge/scripts/common/utils');
     var cardAddResult;
     var canSavecard = '';
     var EnableTokenizationPref = Site.getCurrent().getCustomPreferenceValue('AWPEnableCCTokenization');
@@ -226,13 +246,13 @@ function checkAuthorizationWCSDK(serviceResponse, paymentInstrument, customerObj
     } else if (!empty(serviceResponse.errorName)) {
         return {
             error: true,
-            errorMessage: Resource.msg('worldpay.error.codecancelled', 'worldpayerror', null)
+            errorMessage: utils.getConfiguredLabel('worldpay.error.codecancelled', 'worldpayError')
         };
     }
     return {
         error: true,
         errorkey: 'worldpay.error.code' + serviceResponse.errorCode,
-        errorMessage: Resource.msg('worldpay.error.code' + serviceResponse.errorCode, 'worldpayerror', null)
+        errorMessage: utils.getErrorMessage(serviceResponse.errorCode)
     };
 }
 
