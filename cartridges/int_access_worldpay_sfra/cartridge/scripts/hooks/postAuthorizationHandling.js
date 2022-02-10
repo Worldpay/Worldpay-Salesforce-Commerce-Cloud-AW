@@ -3,6 +3,7 @@
 var URLUtils = require('dw/web/URLUtils');
 var COHelpers = require('*/cartridge/scripts/checkout/checkoutHelpers');
 var server = require('server');
+var Logger = require('dw/system/Logger');
 
 /**
  *
@@ -13,7 +14,9 @@ var server = require('server');
  */
 function postAuthorization(handlePaymentResult, order) {
     let billingForm = server.forms.getForm('billing');
+    // local variables are created for the below session attributes to keep them alive during 3DS challenge page.
     var clearToken = session.privacy.clearToken;
+    var cvvSessionHref = session.privacy.cvvSessionHref;
     if (handlePaymentResult.error) {
         if (!empty(session.privacy.currentOrderNo)) {
             delete session.privacy.currentOrderNo;
@@ -57,6 +60,10 @@ function postAuthorization(handlePaymentResult, order) {
     // delete the token for non-3ds flow
     if (clearToken) {
         COHelpers.deletWPToken(clearToken);
+    }
+    if (cvvSessionHref) {
+        delete session.privacy.cvvSessionHref;
+        Logger.getLogger('worldpay').debug('Post order session cvv href deleted for non-3DS flow');
     }
     if (!empty(session.privacy.currentOrderNo)) {
         delete session.privacy.currentOrderNo;

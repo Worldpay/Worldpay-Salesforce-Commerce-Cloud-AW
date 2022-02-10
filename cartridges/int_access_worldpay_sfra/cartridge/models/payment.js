@@ -1,33 +1,38 @@
 'use strict';
-var Resource = require('dw/web/Resource');
 var PaymentMgr = require('dw/order/PaymentMgr');
 var PaymentInstrument = require('dw/order/PaymentInstrument');
 var array = require('*/cartridge/scripts/util/array');
 var collections = require('*/cartridge/scripts/util/collections');
 var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
 var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var utils = require('*/cartridge/scripts/common/utils');
 
 var RESOURCES = {
-    addPaymentButton: Resource.msg('button.add.payment', 'checkout', null),
-    backToStoredPaymentButton: Resource.msg('button.back.to.stored.payments', 'checkout', null),
-    cardOwnerLabel: Resource.msg('label.input.creditcard.owner', 'forms', null),
-    cardNumberLabel: Resource.msg('field.credit.card.number', 'creditCard', null),
-    worldpayCardsLabel: Resource.msg('label.worldpay.cards', 'forms', null),
-    expirationMonthLabel: Resource.msg('field.credit.card.expiration.month', 'creditCard', null),
-    expirationYearLabel: Resource.msg('field.credit.card.expiration.year', 'creditCard', null),
-    securityCodeLabel: Resource.msg('field.credit.card.security.code', 'creditCard', null),
-    emailLabel: Resource.msg('field.customer.email', 'checkout', null),
-    phoneLabel: Resource.msg('field.customer.phone.number', 'checkout', null),
-    emailToolTip: Resource.msg('tooltip.email', 'creditCard', null),
-    phoneToolTip: Resource.msg('tooltip.phone.number', 'creditCard', null),
-    securityCodeToolTip: Resource.msg('tooltip.security.code', 'creditCard', null),
-    clickHereLinkLabel: Resource.msg('worldpay.payment.clickhere', 'worldpay', null),
-    cardOwnerToolTip: Resource.msg('tooltip.cardOwner', 'forms', null),
-    cardNumberToolTip: Resource.msg('tooltip.cardNumber', 'forms', null),
-    expirationMonthToolTip: Resource.msg('tooltip.expirationMonth', 'forms', null),
-    expirationYearToolTip: Resource.msg('tooltip.expirationYear', 'forms', null),
-    paymentByLabel: Resource.msg('worldpay.payment.type.selectedmethod', 'worldpay', null),
-    amountLabel: Resource.msg('worldpay.payment.amount', 'worldpay', null)
+    addPaymentButton: utils.getConfiguredLabel('button.add.payment', 'checkout'),
+    backToStoredPaymentButton: utils.getConfiguredLabel('button.back.to.stored.payments', 'checkout'),
+    cardOwnerLabel: utils.getConfiguredLabel('label.input.creditcard.owner', 'forms'),
+    cardNumberLabel: utils.getConfiguredLabel('field.credit.card.number', 'creditCard'),
+    worldpayCardsLabel: utils.getConfiguredLabel('label.worldpay.cards', 'forms'),
+    expirationMonthLabel: utils.getConfiguredLabel('field.credit.card.expiration.month', 'creditCard'),
+    expirationYearLabel: utils.getConfiguredLabel('field.credit.card.expiration.year', 'creditCard'),
+    securityCodeLabel: utils.getConfiguredLabel('field.credit.card.security.code', 'creditCard'),
+    emailLabel: utils.getConfiguredLabel('field.customer.email', 'checkout'),
+    phoneLabel: utils.getConfiguredLabel('field.customer.phone.number', 'checkout'),
+    emailToolTip: utils.getConfiguredLabel('tooltip.email', 'creditCard'),
+    phoneToolTip: utils.getConfiguredLabel('tooltip.phone.number', 'creditCard'),
+    securityCodeToolTip: utils.getConfiguredLabel('tooltip.security.code', 'creditCard'),
+    clickHereLinkLabel: utils.getConfiguredLabel('worldpay.payment.clickhere', 'worldpay'),
+    cardOwnerToolTip: utils.getConfiguredLabel('tooltip.cardOwner', 'forms'),
+    cardNumberToolTip: utils.getConfiguredLabel('tooltip.cardNumber', 'forms'),
+    expirationMonthToolTip: utils.getConfiguredLabel('tooltip.expirationMonth', 'forms'),
+    expirationYearToolTip: utils.getConfiguredLabel('tooltip.expirationYear', 'forms'),
+    paymentByLabel: utils.getConfiguredLabel('worldpay.payment.type.selectedmethod', 'worldpay'),
+    amountLabel: utils.getConfiguredLabel('worldpay.payment.amount', 'worldpay'),
+    achAccountNumber: utils.getConfiguredLabel('label.ach.account.number', 'forms'),
+    achRoutingNumber: utils.getConfiguredLabel('label.ach.routing.number', 'forms'),
+    achAccountType: utils.getConfiguredLabel('label.ach.account.type', 'forms'),
+    achCheckNumber: utils.getConfiguredLabel('label.ach.check.number', 'forms'),
+    achCompanyName: utils.getConfiguredLabel('label.ach.company.name', 'forms')
 };
 
 /**

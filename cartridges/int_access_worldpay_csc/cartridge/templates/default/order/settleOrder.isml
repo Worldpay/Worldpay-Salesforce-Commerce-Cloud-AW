@@ -28,16 +28,16 @@
         <isif condition="${pdict.success}">
             <div class="dw-notify-success">
                 <div class="dw-body">
-                    <div class="dw-title">${Resource.msg('settle.success','worldpaybm',null)}</div>
-                    <div class="dw-msg">${Resource.msg('settle.success.message','worldpaybm',null)}</div>
+                    <div class="dw-title">${Resource.msg('settle.success','worldpayBm',null)}</div>
+                    <div class="dw-msg">${Resource.msg('settle.success.message','worldpayBm',null)}</div>
                 </div>
             </div>
             <br/>
             <iselse>
                 <div class="dw-notify-warning">
                     <div class="dw-body">
-                        <div class="dw-title">${Resource.msg('settle.warning','worldpaybm',null)}</div>
-                        <div class="dw-msg">${Resource.msg('settle.warning.message','worldpaybm',null)}</div>
+                        <div class="dw-title">${Resource.msg('settle.warning','worldpayBm',null)}</div>
+                        <div class="dw-msg">${Resource.msg('settle.warning.message','worldpayBm',null)}</div>
                     </div>
                 </div>
                 <br/>
@@ -60,14 +60,14 @@
                         <input name="order_status" type="hidden" value="true"/>
                         <isif condition="${order.custom.awpSettleUrl && (order.custom.WorldpayLastEvent ==='authorized' || order.custom.WorldpayLastEvent ==='sentForAuthorization') && !order.custom.cscLastEvent}">
                             <button class="dw-button dw-button-primary" type="submit">
-                                <span>${Resource.msg('settle.order','worldpaybm',null)}</span>
+                                <span>${Resource.msg('settle.order','worldpayBm',null)}</span>
                             </button>
                             <br/>
                             <iselse>
                                 <isif condition="${!pdict.success}">
                                     <div class="dw-notify-warning">
                                         <div class="dw-body">
-                                            <div class="dw-msg"> ${Resource.msg('nosettle.order','worldpaybm',null)}
+                                            <div class="dw-msg"> ${Resource.msg('nosettle.order','worldpayBm',null)}
                                             </div>
                                         </div>
                                     </div>

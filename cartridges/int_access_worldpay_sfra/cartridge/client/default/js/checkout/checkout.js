@@ -1,5 +1,6 @@
 'use strict';
 
+var customerHelpers = require('base/checkout/customer');
 var addressHelpers = require('base/checkout/address');
 var shippingHelpers = require('base/checkout/shipping');
 var billingHelpers = require('base/checkout/billing');
@@ -29,6 +30,9 @@ var scrollAnimate = require('base/components/scrollAnimate');
         // Collect form data from user input
         //
         var formData = {
+            // Customer Data
+            customer: {},
+
             // Shipping Address
             shipping: {},
 
@@ -46,6 +50,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
         // The different states/stages of checkout
         //
         var checkoutStages = [
+            'customer',
             'shipping',
             'payment',
             'placeOrder',
@@ -85,7 +90,37 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 // eslint-disable-next-line new-cap
                 var defer = $.Deferred();
 
-                if (stage === 'shipping') {
+                if (stage === 'customer') {
+                    //
+                    // Clear Previous Errors
+                    //
+                    customerHelpers.methods.clearErrors();
+                    //
+                    // Submit the Customer Form
+                    //
+                    var customerFormSelector = customerHelpers.methods.isGuestFormActive() ? customerHelpers.vars.GUEST_FORM : customerHelpers.vars.REGISTERED_FORM;
+                    var customerForm = $(customerFormSelector);
+                    $.ajax({
+                        url: customerForm.attr('action'),
+                        type: 'post',
+                        data: customerForm.serialize(),
+                        success: function (data) {
+                            if (data.redirectUrl) {
+                                window.location.href = data.redirectUrl;
+                            } else {
+                                customerHelpers.methods.customerFormResponse(defer, data);
+                            }
+                        },
+                        error: function (err) {
+                            if (err.responseJSON && err.responseJSON.redirectUrl) {
+                                window.location.href = err.responseJSON.redirectUrl;
+                            }
+                            // Server error submitting form
+                            defer.reject(err.responseJSON);
+                        }
+                    });
+                    return defer;
+                } else if (stage === 'shipping') {
                     //
                     // Clear Previous Errors
                     //
@@ -317,7 +352,6 @@ var scrollAnimate = require('base/components/scrollAnimate');
                         url: $('.place-order').data('action'),
                         method: 'POST',
                         success: function (data) {
-                            $.spinner().stop();
                             // enable the placeOrder button here
                             $('body').trigger('checkout:enableButton', '.next-step-button button');
                             if (data.error) {
@@ -332,20 +366,41 @@ var scrollAnimate = require('base/components/scrollAnimate');
                                 if (data.is3D) {
                                     var iframeUrl = $('#cardiframe').data('url');
                                     $('#cardiframe').attr('src', iframeUrl);
+                                    $('#currentPage').val('submitted');
                                     defer.resolve(data);
+                                    var continueUrl = data.continueUrl;
+                                    var urlParams = {
+                                        orderID: data.orderID,
+                                        orderToken: data.orderToken
+                                    };
+                                    if (continueUrl) {
+                                        continueUrl += (continueUrl.indexOf('?') !== -1 ? '&' : '?') +
+                                        Object.keys(urlParams).map(function (key) {
+                                            return key + '=' + encodeURIComponent(urlParams[key]);
+                                        }).join('&');
+                                        window.location.href = continueUrl;
+                                    }
+                                } else {
+                                    var redirect = $('<form>')
+                                    .appendTo(document.body)
+                                    .attr({
+                                        method: 'POST',
+                                        action: data.continueUrl
+                                    });
+                                    $('<input>')
+                                        .appendTo(redirect)
+                                        .attr({
+                                            name: 'orderID',
+                                            value: data.orderID
+                                        });
+                                    $('<input>')
+                                        .appendTo(redirect)
+                                        .attr({
+                                            name: 'orderToken',
+                                            value: data.orderToken
+                                        });
+                                    redirect.submit();
                                 }
-                                var continueUrl = data.continueUrl;
-                                var urlParams = {
-                                    ID: data.orderID,
-                                    token: data.orderToken
-                                };
-
-                                continueUrl += (continueUrl.indexOf('?') !== -1 ? '&' : '?') +
-                                    Object.keys(urlParams).map(function (key) {
-                                        return key + '=' + encodeURIComponent(urlParams[key]);
-                                    }).join('&');
-
-                                window.location.href = continueUrl;
                                 defer.resolve(data);
                             }
                         },
@@ -367,12 +422,24 @@ var scrollAnimate = require('base/components/scrollAnimate');
 
             /**
              * Initialize the checkout stage.
+             *
+             * TODO: update this to allow stage to be set from server?
              */
             initialize: function () {
                 // set the initial state of checkout
                 members.currentStage = checkoutStages
                     .indexOf($('.data-checkout-stage').data('checkout-stage'));
                 $(plugin).attr('data-checkout-stage', checkoutStages[members.currentStage]);
+
+                $('body').on('click', '.submit-customer-login', function (e) {
+                    e.preventDefault();
+                    members.nextStage();
+                });
+
+                $('body').on('click', '.submit-customer', function (e) {
+                    e.preventDefault();
+                    members.nextStage();
+                });
 
                 //
                 // Handle Payment option selection
@@ -391,6 +458,10 @@ var scrollAnimate = require('base/components/scrollAnimate');
                 //
                 // Handle Edit buttons on shipping and payment summary cards
                 //
+                $('.customer-summary .edit-button', plugin).on('click', function () {
+                    members.gotoStage('customer');
+                });
+
                 $('.shipping-summary .edit-button', plugin).on('click', function () {
                     if (!$('#checkout-main').hasClass('multi-ship')) {
                         $('body').trigger('shipping:selectSingleShipping');
@@ -439,6 +510,7 @@ var scrollAnimate = require('base/components/scrollAnimate');
 
                 promise.done(function () {
                     // Update UI with new stage
+                    $('.error-message').hide();
                     members.handleNextStage(true);
                 });
 
@@ -529,6 +601,10 @@ var exports = {
 
     updateCheckoutView: function () {
         $('body').on('checkout:updateCheckoutView', function (e, data) {
+            if (data.csrfToken) {
+                $("input[name*='csrf_token']").val(data.csrfToken);
+            }
+            customerHelpers.methods.updateCustomerInformation(data.customer, data.order);
             shippingHelpers.methods.updateMultiShipInformation(data.order);
             summaryHelpers.updateTotals(data.order.totals);
             data.order.shipping.forEach(function (shipping) {
@@ -560,11 +636,9 @@ var exports = {
             $(button).prop('disabled', false);
         });
     }
-
-
 };
 
-[billingHelpers, shippingHelpers, addressHelpers].forEach(function (library) {
+[customerHelpers, billingHelpers, shippingHelpers, addressHelpers].forEach(function (library) {
     Object.keys(library).forEach(function (item) {
         if (typeof library[item] === 'object') {
             exports[item] = $.extend({}, exports[item], library[item]);

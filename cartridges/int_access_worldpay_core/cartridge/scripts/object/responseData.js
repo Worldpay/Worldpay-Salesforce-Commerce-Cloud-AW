@@ -1,6 +1,6 @@
 /* eslint-disable */
 var Logger = require('dw/system/Logger');
-
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 function ResponseData() {
 }
 
@@ -39,6 +39,11 @@ ResponseData.prototype = {
         this.tokenConflictName = '';
         this.tokenExpdateURL = '';
         this.tokenCcHolderNameURL = '';
+        this.riskProfile = '';
+        this.transactionReference = '';
+        this.exemption = '';
+        this.directEvents = '';
+        this.directReversal = '';
 
         try {
             this.content = JSON.parse(responseJSON);
@@ -62,6 +67,16 @@ ResponseData.prototype = {
                     }
                     if (c._links['payments:partialSettle']) {
                         this.partialSettleUrl = c._links['payments:partialSettle'].href;
+                    }
+                }
+                if (this.outcome == worldpayConstants.SENTFORSETTLEMENT || this.outcome == worldpayConstants.SENTFORCANCELLATION) {
+                    if (c.hasOwnProperty('_links')) {
+                        if (c._links['direct:events']) {
+                            this.directEvents = c._links['direct:events'].href;
+                        }
+                        if (c._links['direct:reversal']) {
+                            this.directReversal = c._links['direct:reversal'].href;
+                        }
                     }
                 }
                 if (c.hasOwnProperty('_links')) {
@@ -121,6 +136,26 @@ ResponseData.prototype = {
                     }
                 }
 
+                if (this.outcome == 'exemption') {
+                    if (c.transactionReference) {
+                        this.transactionReference = c.transactionReference;
+                    }
+                    if (c.riskProfile) {
+                        this.riskProfile = c.riskProfile;
+                    }
+                    if (c.exemption) {
+                        this.exemption = c.exemption;
+                    }
+                }
+
+                if (this.outcome == 'noExemption') {
+                    if (c.transactionReference) {
+                        this.transactionReference = c.transactionReference;
+                    }
+                    if (c.riskProfile) {
+                        this.riskProfile = c.riskProfile;
+                    }
+                }
                 if (c.hasOwnProperty('errorName')) {
                     this.errorName = c.errorName;
                 }

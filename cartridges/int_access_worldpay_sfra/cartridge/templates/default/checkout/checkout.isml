@@ -7,7 +7,8 @@
         assets.addJs('/js/checkout.js');
         assets.addCss('/css/checkout/checkout.css');
         assets.addCss('/css/worldpay.css');
-         assets.addCss('/css/webCSDK.css');
+        assets.addCss('/css/webCSDK.css');
+        var utils = require('*/cartridge/scripts/common/utils.js');
     </isscript>
 
     <isif condition="${pdict.reportingURLs && pdict.reportingURLs.length}">
@@ -15,7 +16,7 @@
     </isif>
 
     <h1 class="page-title">
-        ${Resource.msg('title.checkout', 'checkout', null)}
+        ${utils.getConfiguredLabel('title.checkout', 'checkout')}
     </h1>
     <div id="checkout-main" class="container data-checkout-stage <isif condition=" ${pdict.order.usingMultiShipping && pdict.order.shipping.length > 1}">multi-ship</isif>" data-customer-type="${pdict.customer.registeredUser ? 'registered' : 'guest'}" data-checkout-stage="${pdict.currentStage}"
         data-checkout-get-url="${URLUtils.https('CheckoutServices-Get')}">
@@ -27,8 +28,8 @@
         <div class="row hidden-xs-down">
             <div class="col-12 col-sm-5 offset-sm-7 col-md-5 offset-md-7">
                 <div class="text-center">
-                    <span>${Resource.msg('info.need.help', 'cart', null)}</span>
-                    <span><a href="tel:${Resource.msg('info.phone.number', 'common', null)}">${Resource.msg('info.phone.number', 'common', null)}</a></span>
+                    <span>${utils.getConfiguredLabel('info.need.help', 'cart')}</span>
+                    <span><a href="tel:${utils.getConfiguredLabel('info.phone.number', 'common')}">${utils.getConfiguredLabel('info.phone.number', 'common')}</a></span>
                 </div>
             </div>
         </div>
@@ -42,22 +43,42 @@
         <div class="row">
             <div class="col-sm-7">
 
-
                 <iscomment>
                     Checkout Forms: Shipping, Payment, Coupons, Billing, etc
                 </iscomment>
+
                 <div class="alert alert-danger error-message" role="alert">
                     <p class="error-message-text"></p>
                 </div>
+
                 <iscomment>
-                    Step 1: Shipping
+                    Step 1: Customer
+                </iscomment>
+                <iscomment>We only allow edits for non-registered customers</iscomment>
+                <isif condition="${!pdict.customer.registeredUser}">
+                    <isinclude template="checkout/customer/customer" />
+                </isif>
+                 <div class="card customer-summary">
+                    <div class="card-header clearfix">
+                        <h2 class="pull-left card-header-custom">${utils.getConfiguredLabel('heading.checkout.customer', 'checkout')}</h2>
+                        <isif condition="${!pdict.customer.registeredUser}">
+                            <button class="edit-button pull-right" aria-label="${Resource.msg('action.edit.step.msg.customer', 'checkout', null)}">${utils.getConfiguredLabel('action.edit.step', 'checkout')}</button>
+                        </isif>
+                    </div>
+                    <div class="card-body">
+                        <isinclude template="checkout/customer/customerSummary" />
+                    </div>
+                </div>
+
+                <iscomment>
+                    Step 2: Shipping
                 </iscomment>
 
                 <isinclude template="checkout/shipping/shipping" />
                 <div class="card shipping-summary">
                     <div class="card-header clearfix">
-                        <h4 class="pull-left">${Resource.msg('heading.checkout.shipping', 'checkout', null)}</h4>
-                        <span class="edit-button pull-right">${Resource.msg('action.edit.step', 'checkout', null)}</span>
+                        <h4 class="pull-left">${utils.getConfiguredLabel('heading.checkout.shipping', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${utils.getConfiguredLabel('action.edit.step', 'checkout')}</span>
                     </div>
                     <div class="card-body">
                         <isinclude template="checkout/shipping/shippingSummary" />
@@ -66,13 +87,13 @@
 
 
                 <iscomment>
-                    Step 2: Payment and Billing
+                    Step 3: Payment and Billing
                 </iscomment>
                 <isinclude template="checkout/billing/billing" />
                 <div class="card payment-summary">
                     <div class="card-header clearfix">
-                        <h4 class="pull-left">${Resource.msg('heading.payment', 'checkout', null)}</h4>
-                        <span class="edit-button pull-right">${Resource.msg('action.edit.step', 'checkout', null)}</span>
+                        <h4 class="pull-left">${utils.getConfiguredLabel('heading.payment', 'checkout')}</h4>
+                        <span class="edit-button pull-right">${utils.getConfiguredLabel('action.edit.step', 'checkout')}</span>
                     </div>
 
                     <div class="card-body">
@@ -89,18 +110,17 @@
                             <button class="btn btn-primary btn-block submit-shipping" type="submit" name="submit"
                                 value="submit-shipping" <isif
                                 condition="${pdict.order.usingMultiShipping && !pdict.order.shippable}">disabled</isif>>
-                                ${Resource.msg('button.next.payment', 'checkout', null)}
+                                ${utils.getConfiguredLabel('button.next.payment', 'checkout')}
                             </button>
 
                             <button id="submitPaymentButton" class="btn btn-primary btn-block submit-payment"
                                 data-action="${URLUtils.url('CheckoutServices-SubmitPayment')}" type="submit"
                                 name="submit" value="submit-payment">
-                                 ${Resource.msg('button.next.payment.order', 'forms', null)}
+                                 ${utils.getConfiguredLabel('button.next.payment.order', 'forms')}
                             </button>
 
-                            <button class="btn btn-primary btn-block place-order"
-                                data-action="${URLUtils.url('CheckoutServices-PlaceOrder')}" type="submit" name="submit"
-                                value="place-order">${Resource.msg('button.place.order', 'checkout', null)}
+                            <button class="btn btn-primary btn-block place-order" data-action="${URLUtils.url('CheckoutServices-PlaceOrder')}"
+                                    type="submit" name="submit" value="place-order">${utils.getConfiguredLabel('button.place.order', 'checkout')}
                             </button>
                         </div>
                     </div>
@@ -115,7 +135,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>${Resource.msg('heading.order.summary', 'checkout', null)}</h4>
+                        <h4>${utils.getConfiguredLabel('heading.order.summary', 'checkout')}</h4>
                     </div>
                     <div class="card-body order-total-summary">
                         <isinclude template="checkout/orderTotalSummary" />

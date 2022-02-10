@@ -1,10 +1,10 @@
-<form id="collectionForm" name="devicedata" method="POST" action="${pdict.ddcURL}">
-
-  <input type="hidden" name="Bin" value="${pdict.bin}" />
-
-  <input type="hidden" name="JWT" value="${pdict.JWT}" />
-
-</form>
-<script>
- document.getElementById('collectionForm').submit();
-</script>
+<isdecorate template="common/worldpayPages">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/redirect.js');
+    </isscript>
+    <form id="collectionForm" name="collectionForm" method="POST" action="${pdict.ddcURL}">
+        <input type="hidden" name="Bin" value="${pdict.bin}" />
+        <input type="hidden" name="JWT" value="${pdict.JWT}" />
+    </form>
+</isdecorate>

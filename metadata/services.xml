@@ -25,6 +25,10 @@
             <custom-attribute attribute-id="clientsecret"></custom-attribute>
         </custom-attributes>
     </service-credential>
+	
+	<service-credential service-credential-id="AWP_exemption">
+        <url>https://try.access.worldpay.com/exemptions</url>
+    </service-credential>
 
     <service-profile service-profile-id="worldpayprofile">
         <timeout-millis>30000</timeout-millis>
@@ -100,6 +104,17 @@
         <mock-mode-enabled>false</mock-mode-enabled>
         <profile-id>worldpayprofile</profile-id>
         <credential-id>oms auth</credential-id>
+    </service>
+	
+	<service service-id="int_access_worldpay.http.worldpay.exemptions.post">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>accesswp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>true</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>worldpayprofile</profile-id>
+        <credential-id>AWP_exemption</credential-id>
     </service>
 
 </services>

@@ -1,5 +1,6 @@
 <isscript>
-            assets.addCss('/css/webCSDK.css');
+    assets.addCss('/css/webCSDK.css');
+    var utils = require('*/cartridge/scripts/common/utils.js');
 </isscript>
 <div class="row worldpaySaveCreditFields">
     <div class="col">
@@ -15,7 +16,7 @@
                 <div class="dis_id">
                     <a id="disclaimer" class="" title="disclaimer" data-toggle="modal"
                        data-target="#disclaimerModal">
-                        ${Resource.msg('worldpay.disclaimer.link', 'worldpay', null)}
+                        ${utils.getConfiguredLabel('worldpay.disclaimer.link', 'worldpay')}
                     </a>
                 </div>
             </isif>

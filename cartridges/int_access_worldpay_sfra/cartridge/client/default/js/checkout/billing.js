@@ -14,6 +14,35 @@ base.ajaxStartEvents = function () {
 };
 
 /**
+ * Payment method tab click handling and manipulating the
+ * cpg DOM for CC, BS and WP
+ */
+base.updatePaymentSection = function () {
+    $(document).on('click', '.payment-options .nav-item', function (e) {
+        var paymentType = $(e.currentTarget).attr('data-method-id').trim();
+        $('.payment-information').attr('data-payment-method-id', paymentType);
+        $('#' + paymentType).hide();
+        $('#' + paymentType + 'Head').show();
+        $('.ach-company-name').hide();
+        var scrollAnimate = require('base/components/scrollAnimate');
+        scrollAnimate($('#payment-head-content'));
+        var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
+        var isApplePaySupportedBrowser = $('body').hasClass('apple-pay-enabled');
+        for (var i = 1; i <= allPaymentMethodLength; i++) {
+            var nextPaymentMethod = $('#allpaymentmethods' + i).attr('value');
+            if (paymentType !== nextPaymentMethod) {
+                $('#' + nextPaymentMethod).show();
+                $('#' + nextPaymentMethod + 'Head').hide();
+            }
+            // Applepay will be displayed only on apple devices
+            if (nextPaymentMethod === 'DW_APPLE_PAY' && !isApplePaySupportedBrowser) {
+                $('#' + nextPaymentMethod).hide();
+            }
+        }
+    });
+};
+
+/**
  * Events for handling CC disclaimer feature
  */
 function disclaimerEvents() {
@@ -23,7 +52,6 @@ function disclaimerEvents() {
             $('#chosetosave').show();
         }
     }
-
 
     $('.form-check-input.check').click(function () {
         if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
@@ -95,7 +123,7 @@ function sdkTabevents() {
             if ($('#updateLimitCrossed').is(':visible')) {
                 $('.cardSDK').show();
                 $('#submitPaymentButton').prop('disabled', true);
-            } else {
+            } else if ($('#webCvvSDK').val() === 'false') {
                 $('.cardSDK').hide();
                 $('#submitPaymentButton').prop('disabled', false);
             }
@@ -116,7 +144,10 @@ function sdkTabevents() {
  */
 base.ajaxCompleteEvents = function () {
     $(document).ajaxComplete(function () {
-        $.spinner().stop();
+        var currentStage = $('#currentPage').val();
+        if (currentStage !== 'submitted') {
+            $.spinner().stop();
+        }
         disclaimerEvents();
         if ($('#isvtokenavailable').attr('value') !== 'true') {
             sdkTabevents();
@@ -159,6 +190,20 @@ base.submitBtnClickEvents = function () {
                 return false;
             }
         }
+        if ($('.payment-information').data('payment-method-id') === 'ACH_DIRECT_DEBIT-SSL') {
+            if ($('#accountType').val() === 'Corporate' || $('#accountType').val() === 'CorpSavings') {
+                if ($('#companyName').val() !== '') {
+                    $('#achpayerror').hide();
+                } else {
+                    if ($('.invalid-feedback').text() !== '') {
+                        $('#achpayerror').hide();
+                    } else {
+                        $('#achpayerror').show();
+                    }
+                    return false;
+                }
+            }
+        }
         if ($('#isDisclaimerMandatory').attr('value') === 'true' && $('#showDisclaimer').attr('value') === 'true' && $('.form-check-input.check').is(':checked')) {
             if ($('div.user-payment-instruments.checkout-hidden').length !== 0 && $('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 if ($('#clickeventdis').attr('value') === '' && ($("input[name$='disclaimer']:checked").val() === 'no')) {
@@ -168,13 +213,11 @@ base.submitBtnClickEvents = function () {
             }
         }
 
-
         if ($('#isDisclaimerMandatory').attr('value') === undefined && $('.form-check-input.check').is(':checked')) {
             if ($('.payment-information').data('payment-method-id') === 'CREDIT_CARD') {
                 $('#chosetosave').hide();
             }
         }
-
 
         if ($('.data-checkout-stage').data('customer-type') === 'registered') {
             // if payment method is credit card
@@ -220,9 +263,7 @@ base.submitBtnClickEvents = function () {
             var regexAmex = /^(\s*|[0-9]{4})$/;
             $('.saved-payment-security-code').each(function () {
                 var cardTypeText = $('.saved-payment-security-code').parents('.saved-payment-instrument').find('.saved-credit-card-type').text();
-                if (cardTypeText && cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) {
-                    $(this).siblings('.invalid-feedback').show();
-                } else if (cardTypeText && cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false)) {
+                if (cardTypeText && ((cardTypeText.indexOf('Amex') > -1 && (regexAmex.test($(this).val()) === false)) || (cardTypeText.indexOf('Amex') < 0 && (regex.test($(this).val()) === false)))) {
                     $(this).siblings('.invalid-feedback').show();
                 }
             });
@@ -271,6 +312,9 @@ base.navClickEvent = function () {
         var paymentType = $(e.currentTarget).attr('data-method-id');
         var $ccSecurityType = $('.payment-information').data('cc-security-type');
         $('.payment-information').attr('data-payment-method-id', paymentType);
+        if ($ccSecurityType === 'WEB_SDK' && $('.cvvSubmit').length) {
+            $('button.clear-cvv').trigger('click');
+        }
         if (paymentType === 'CREDIT_CARD' && $ccSecurityType === 'WEB_SDK') {
             $('#submitPaymentButton').prop('disabled', true);
             $('.cardSDK').show();
@@ -352,16 +396,75 @@ base.changePayment = function () {
     });
 };
 
+base.onBillingCountryChange = function () {
+    $('body').on('change', '#billingCountry', function () {
+        var lookupCountry = $('#billingCountry').val();
+        $.ajax({
+            url: $('.form-nav.billing-nav.payment-information').data('apmlookup-url') + '&lookupCountry=' + lookupCountry,
+            type: 'get',
+            context: this,
+            dataType: 'html',
+            success: function (data) {
+                $('.form-nav.billing-nav.payment-information').parent().html(data);
+                require('base/checkout/billing').paymentTabs();
+                if ($('.nav-item#CREDIT_CARD').length > 0) {
+                    var cleave = require('base/components/cleave');
+                    cleave.handleCreditCardNumber('.cardNumber', '#cardType');
+                }
+
+                var paymentType;
+                if ($('#dwfrm_billing').find('.nav-link.active').length) {
+                    paymentType = $('#dwfrm_billing').find('.nav-link.active').parent('li').attr('data-method-id');
+                    $('#' + paymentType).hide();
+                    $('#' + paymentType + 'Head').show();
+                } else {
+                    $('#dwfrm_billing').find('.active [data-method-id].selected').attr('data-method-id');
+                }
+            }
+        });
+    });
+};
+
 /**
  * Document Ready events
  */
 base.documentReadyEvents = function () {
     $(document).ready(function () {
+        var paymentType = $('.payment-information').data('payment-method-id').trim();
+        if ($('.payment-group .payment-method').length === 0) {
+            $('#' + paymentType).hide();
+            $('#' + paymentType + 'Head').show();
+        }
+        var allPaymentMethodLength = $('#allpaymentmethodslength').attr('value');
+        var isApplePaySupportedBrowser = $('body').hasClass('apple-pay-enabled');
+        for (var i = 1; i <= allPaymentMethodLength; i++) {
+            var nextPaymentMethod = $('#allpaymentmethods' + i).attr('value');
+            if (paymentType !== nextPaymentMethod) {
+                $('#' + nextPaymentMethod).show();
+                $('#' + nextPaymentMethod + 'Head').hide();
+            }
+            // Applepay will be displayed only on apple devices
+            if (nextPaymentMethod === 'DW_APPLE_PAY' && !isApplePaySupportedBrowser) {
+                $('#' + nextPaymentMethod).hide();
+            }
+        }
         disclaimerEvents();
         sdkTabevents();
     });
 };
 
+/**
+ * displays company name field when account type is Corporate / CorpSavings otherwise hides it.
+ */
+base.onAccountTypeChange = function () {
+    $('body').on('change', '.accountType', function () {
+        var lookupAcctType = $('#accountType').val();
+        if (lookupAcctType === 'Corporate' || lookupAcctType === 'CorporateSavings') {
+            $('.ach-company-name').show();
+        } else {
+            $('.ach-company-name').hide();
+        }
+    });
+};
 
 module.exports = base;
-

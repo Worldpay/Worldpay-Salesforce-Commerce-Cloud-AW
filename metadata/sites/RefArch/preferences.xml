@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <preferences xmlns="http://www.demandware.com/xml/impex/preferences/2007-03-31">
-
+    
     <custom-preferences>
         <all-instances/>
         <development>
             <preference preference-id="AWPEPJSON">{
     "payments": {
-        "authorization": "authorizations"
+        "authorization": "authorizations",
+        "migrateCardOnFileAuthorize": "authorizations/migrateCardOnFile",
+        "achpayDirectSale": "alternative/direct/sale"
     },
     "3ds": {
         "jwt": "deviceDataInitialization",
         "authentication": "authentication",
         "verification": "verification"
+    },
+    "exemption": {
+        "assessment" : "assessment"
     }
+    
 }</preference>
             <preference preference-id="AWPEnableCCTokenization">true</preference>
             <preference preference-id="AWPGooglePayEnvironment">TEST</preference>
@@ -29,6 +35,7 @@
             <preference preference-id="ccSecurityModel">WEB_SDK</preference>
             <preference preference-id="webCSDKIdentity">8d4cbbb0-66f8-4ec5-9a21-19b55dc663ab</preference>
             <preference preference-id="webCSDKScript">https://try.access.worldpay.com/access-checkout/v1/checkout.js</preference>
+            <preference preference-id="isExemptionEngineEnabled">false</preference>
         </development>
         <staging/>
         <production/>

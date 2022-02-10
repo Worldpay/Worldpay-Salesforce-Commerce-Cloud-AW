@@ -1,8 +1,10 @@
-<form name= "challengeForm" id="challengeForm" method= "POST" action="${pdict.URL}">
-  <input type = "hidden" name= "JWT" value="${pdict.JWT}" />
-  <input type="hidden" name="MD" value="orderNo=${pdict.orderNo}" />
-</form>
-
-<script>
-	document.getElementById('challengeForm').submit();
-</script>
+<isdecorate template="common/worldpayPages">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets');
+        assets.addJs('/js/redirect.js');
+    </isscript>
+    <form id="challengeForm" name="challengeForm" method="POST" action="${pdict.URL}">
+        <input type="hidden" name="JWT" value="${pdict.JWT}" />
+        <input type="hidden" name="MD" value="orderNo=${pdict.orderNo}"/>
+    </form>
+</isdecorate>

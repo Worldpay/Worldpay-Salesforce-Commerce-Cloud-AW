@@ -120,6 +120,26 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__worldpayLastEvent">
+                <display-name xml:lang="x-default">Worldpay Last Event  OMS</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="oms_worldpay__awpRefundUrl">
+                <display-name xml:lang="x-default">Refund URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="omsUpdatePending">
+                <display-name xml:lang="x-default">OMS Update Pending</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="WorldpayLastEvent">
                 <display-name xml:lang="x-default">Worldpay Last Event </display-name>
                 <type>string</type>
@@ -155,6 +175,32 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="isExemptionRequested">
+                <display-name xml:lang="x-default">Exemption Engine Requested</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="achpayEventsUrl">
+                <display-name xml:lang="x-default">ACH Pay Events URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achpayVoidSaleUrl">
+                <display-name xml:lang="x-default">ACH Pay Void Sale URL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="usDomesticOrder">
+                <display-name xml:lang="x-default">US Domestic Order</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="custom">
@@ -169,6 +215,10 @@
                 <attribute attribute-id="AWPtransactionStatus" />
                 <attribute attribute-id="awpSettleReference" />
                 <attribute attribute-id="awpRefundReference" />
+                <attribute attribute-id="isExemptionRequested" />
+                <attribute attribute-id="achpayEventsUrl" />
+                <attribute attribute-id="achpayVoidSaleUrl" />
+                <attribute attribute-id="usDomesticOrder" />
             </attribute-group>
             <attribute-group group-id="AccessWorldpay-SalesforceOMS">
                 <display-name xml:lang="x-default">Access Worldpay Salesforce OMS</display-name>
@@ -176,6 +226,8 @@
                 <attribute attribute-id="oms_worldpay__awpCurrencyCode"/>
                 <attribute attribute-id="oms_worldpay__awpPartialSettleUrl"/>
                 <attribute attribute-id="oms_worldpay__awpSettleUrl"/>
+                <attribute attribute-id="oms_worldpay__awpRefundUrl"/>
+                <attribute attribute-id="oms_worldpay__worldpayLastEvent"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
@@ -245,6 +297,41 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
+            <attribute-definition attribute-id="achAccountNumber">
+                <display-name xml:lang="x-default">ACH Account Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achAccountType">
+                <display-name xml:lang="x-default">ACH Account Type</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achCheckNumber">
+                <display-name xml:lang="x-default">ACH Check Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achRoutingNumber">
+                <display-name xml:lang="x-default">ACH Routing Number</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="achCompanyName">
+                <display-name xml:lang="x-default">ACH Company Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
         </custom-attribute-definitions>
     </type-extension>
     <type-extension type-id="SitePreferences">
@@ -286,7 +373,7 @@
                 <min-length>0</min-length>
                 <default-value>gPayMerchantID</default-value>
             </attribute-definition>
-		 <attribute-definition attribute-id="AWPGatewayMerchantId">
+         <attribute-definition attribute-id="AWPGatewayMerchantId">
             <display-name xml:lang="x-default">Gateway Merchant Id</display-name>
             <type>string</type>
             <mandatory-flag>false</mandatory-flag>
@@ -444,14 +531,21 @@
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-				<default-value>true</default-value>
+                <default-value>true</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="AWPshowDisclaimer">
                 <display-name xml:lang="x-default">Show Disclaimer in the Frontend</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-				<default-value>true</default-value>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableConfigurableLabels">
+                <display-name xml:lang="x-default">Enable Configurable Labels</display-name>
+                <description xml:lang="x-default">To Enable Configurable Labels</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
             <attribute-definition attribute-id="webCSDKIdentity">
                 <display-name xml:lang="x-default">Web Checkout State Identity</display-name>
@@ -467,7 +561,7 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
             </attribute-definition>
-			<attribute-definition attribute-id="ccSecurityModel">
+            <attribute-definition attribute-id="ccSecurityModel">
                 <display-name xml:lang="x-default">Credit Card Security Model</display-name>
                 <type>enum-of-string</type>
                 <mandatory-flag>false</mandatory-flag>
@@ -483,12 +577,12 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
-			<attribute-definition attribute-id="isAWPCvvDisabled">
-                <display-name xml:lang="x-default">Worldpay Disable CVV Direct</display-name>
+            <attribute-definition attribute-id="isAWPCvvDisabled">
+                <display-name xml:lang="x-default">Worldpay Disable CVV</display-name>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-				<default-value>false</default-value>
+                <default-value>false</default-value>
             </attribute-definition>
             <attribute-definition attribute-id="enableMagicValues">
                 <display-name xml:lang="x-default">Enable Magic Values</display-name>
@@ -519,51 +613,122 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="isQuickCheckoutEnabled">
+                <display-name xml:lang="x-default">Enable Quick Checkout</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="isExemptionEngineEnabled">
+                <display-name xml:lang="x-default">Enable Exemption Engine</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="skipStateCodeAddressValidation">
+                <display-name xml:lang="x-default">State Code Address Validation</display-name>
+                <description xml:lang="x-default">If set to true, the state code validation will be skipped for apple pay (US and non-US countries).</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="AWPMerchantID">
+                <display-name xml:lang="x-default">Merchant</display-name>
+                <description xml:lang="x-default">Merchant ID</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="previousPluginUpgradeDates">
+                <display-name xml:lang="x-default">Previous Plugin Upgrade Dates</display-name>
+                <description xml:lang="x-default">Previous Plugin Upgrade Dates</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="previousCartridgeVersion">
+                <display-name xml:lang="x-default">Previous Cartridge Version</display-name>
+                <description xml:lang="x-default">Previous Cartridge Version</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>true</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="merchantEntity">
+                <display-name xml:lang="x-default">Merchant Entity</display-name>
+                <description xml:lang="x-default">This is mandatory for authentication and queries.
+                Contact your Implementation Manager for more details.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>default</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="narrativeLine1">
+                <display-name xml:lang="x-default">Narrative Line1</display-name>
+                <description xml:lang="x-default">A Narrative Line1 must be between 1 - 24 characters and it allows only alphanumeric characters including Space,Hyphens,commas and Full stop.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>store front order</default-value>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
-			<attribute-group group-id="AccessWorldpay-General">
+            <attribute-group group-id="AccessWorldpay-General">
                 <display-name xml:lang="x-default">Access World Pay General configurations</display-name>
-				<attribute attribute-id="ccSecurityModel"/>
-				<attribute attribute-id="webCSDKIdentity" />
-				<attribute attribute-id="webCSDKScript" />
+                <attribute attribute-id="merchantEntity"/>
+                <attribute attribute-id="narrativeLine1"/>
+                <attribute attribute-id="ccSecurityModel"/>
+                <attribute attribute-id="webCSDKIdentity" />
+                <attribute attribute-id="webCSDKScript" />
                 <attribute attribute-id="isAWPCvvDisabled"/>
                 <attribute attribute-id="AWPEPJSON" />
-				<attribute attribute-id="AWPWorldpayCurrencyExponent" />
+                <attribute attribute-id="AWPWorldpayCurrencyExponent" />
+                <attribute attribute-id="EnableConfigurableLabels"/>
+                <attribute attribute-id="AWPMerchantID"/>
+                <attribute attribute-id="previousPluginUpgradeDates"/>
+                <attribute attribute-id="previousCartridgeVersion"/>
             </attribute-group>
-			<attribute-group group-id="AccessWorldpay-MobileWallets">
+            <attribute-group group-id="AccessWorldpay-MobileWallets">
                 <display-name xml:lang="x-default">Access World Pay Mobile wallets configurations</display-name>
                 <attribute attribute-id="AWPGooglePayEnvironment" />
-				<attribute attribute-id="AWPGooglePayMerchantID" />
+                <attribute attribute-id="AWPGooglePayMerchantID" />
                 <attribute attribute-id="AWPGoogleMerchantName" />
-				<attribute attribute-id="AWPGatewayMerchantId" />
+                <attribute attribute-id="AWPGatewayMerchantId" />
                 <attribute attribute-id="AWPGatewayMerchantName" />
+                <attribute attribute-id="skipStateCodeAddressValidation"/>
             </attribute-group>
-			<attribute-group group-id="AccessWorldpay-AccountOnFile">
+            <attribute-group group-id="AccessWorldpay-AccountOnFile">
                 <display-name xml:lang="x-default">Access World Pay Account On File configurations</display-name>
                 <attribute attribute-id="AWPEnableCCTokenization" />
             </attribute-group>
-			<attribute-group group-id="AccessWorldpay-SchemeMandated">
+            <attribute-group group-id="AccessWorldpay-SchemeMandated">
                 <display-name xml:lang="x-default">Access World Pay Scheme mandated configurations</display-name>
                 <attribute attribute-id="AWPisDisclaimerMandatory" />
                 <attribute attribute-id="AWPshowDisclaimer" />
             </attribute-group>
-			 <attribute-group group-id="AccessWorldpay-SecureTransaction">
+             <attribute-group group-id="AccessWorldpay-SecureTransaction">
                 <display-name xml:lang="x-default">Access World Pay secure transactions configurations</display-name>
                 <attribute attribute-id="AWPdstype" />
-				<attribute attribute-id="AWPchallengePreference" />
-				<attribute attribute-id="AWPchallengeWindowSize" />
-				<attribute attribute-id="AWPRiskData" />
+                <attribute attribute-id="AWPchallengePreference" />
+                <attribute attribute-id="AWPchallengeWindowSize" />
+                <attribute attribute-id="AWPRiskData" />
                 <attribute attribute-id="enableMagicValues" />
+                <attribute attribute-id="isExemptionEngineEnabled" />
             </attribute-group>
-			<attribute-group group-id="AccessWorldpay-Notifications">
+            <attribute-group group-id="AccessWorldpay-Notifications">
                 <display-name xml:lang="x-default">Access World Pay Notification configurations</display-name>
                 <attribute attribute-id="WorldpayNotificationIPAddressesStart" />
-				<attribute attribute-id="WorldpayNotificationIPAddressesEnd" />
-				<attribute attribute-id="ValidateIPAddress" />
+                <attribute attribute-id="WorldpayNotificationIPAddressesEnd" />
+                <attribute attribute-id="ValidateIPAddress" />
                 <attribute attribute-id="EnableJobMailerService" />
                 <attribute attribute-id="NotifyJobMailFrom" />
                 <attribute attribute-id="NotifyJobMailTo" />
-				<attribute attribute-id="NotifyJobMailCC" />
+                <attribute attribute-id="NotifyJobMailCC" />
             </attribute-group>
             <attribute-group group-id="AccessWorldpay- SalesforceOMS">
                 <display-name xml:lang="x-default">Access World Pay Salesforce OMS configurations</display-name>
@@ -571,9 +736,13 @@
                 <attribute attribute-id="overrideOMSStatusValues"/>
                 <attribute attribute-id="enableFallbackOrderStatus"/>
             </attribute-group>
+            <attribute-group group-id="AccessWorldpay-CheckoutFeatures">
+                <display-name xml:lang="x-default">Access Worldpay Checkout feature configurations</display-name>
+                <attribute attribute-id="isQuickCheckoutEnabled"/>
+            </attribute-group>
         </group-definitions>
     </type-extension>
-	<type-extension type-id="PaymentMethod">
+    <type-extension type-id="PaymentMethod">
         <custom-attribute-definitions>
             <attribute-definition attribute-id="type">
                 <display-name xml:lang="x-default">Type</display-name>

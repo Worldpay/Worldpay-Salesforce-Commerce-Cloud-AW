@@ -46,11 +46,15 @@ server.prepend(
         var paymentForm = server.forms.getForm('billing');
         var billingFormErrors = {};
         var creditCardErrors = {};
-        var billingUserFieldErrors = {};
+        var paymentFieldErrors = {};
+        var savedCardErrors = null;
         var paramMap = request.httpParameterMap;
         var Site = require('dw/system/Site');
         var WorldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
+        var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
         var ccSecurityModel = Site.current.getCustomPreferenceValue('ccSecurityModel').value;
+        var Logger = require('dw/system/Logger');
+        var isCVVDisabled = Site.getCurrent().getCustomPreferenceValue('isAWPCvvDisabled');
 
         var viewData = {};
         // verify billing form data
@@ -67,14 +71,29 @@ server.prepend(
                 }
             }
         }
+        if (paymentForm.paymentMethod.value.equals(worldpayConstants.ACHPAY)) {
+            paymentFieldErrors = COHelpers.validateFields(paymentForm.achFields);
+        }
+        var contactInfoFormErrors = COHelpers.validateFields(paymentForm.contactInfoFields);
 
-        billingUserFieldErrors = COHelpers.validateFields(paymentForm.billingUserFields);
-        if (Object.keys(billingFormErrors).length || Object.keys(creditCardErrors).length || Object.keys(billingUserFieldErrors).length) {
+        if (paymentForm.paymentMethod.value.equals('CREDIT_CARD') && ccSecurityModel === 'WEB_SDK' && req.form.storedPaymentUUID && !isCVVDisabled && !session.privacy.cvvSessionHref) {
+            savedCardErrors = Resource.msg('error.message.security.code.required', 'checkout', null);
+        }
+        if (!req.form.storedPaymentUUID && session.privacy.cvvSessionHref) {
+            Logger.getLogger('worldpay').debug('Cleared orphan cvv href from session');
+            delete session.privacy.cvvSessionHref;
+        }
+        if (Object.keys(paymentFieldErrors).length) {
+            Object.keys(paymentFieldErrors).forEach(function (innerKey) {
+                creditCardErrors[innerKey] = paymentFieldErrors[innerKey];
+            });
+        }
+        if (Object.keys(billingFormErrors).length || Object.keys(creditCardErrors).length || Object.keys(contactInfoFormErrors).length || savedCardErrors) {
             // respond with form data and errors
             res.json({
                 form: paymentForm,
-                fieldErrors: [billingFormErrors, creditCardErrors, billingUserFieldErrors],
-                serverErrors: [],
+                fieldErrors: [billingFormErrors, creditCardErrors, contactInfoFormErrors],
+                serverErrors: savedCardErrors ? [savedCardErrors] : [],
                 error: true
             });
         } else {
@@ -153,8 +172,29 @@ server.prepend(
                 },
                 tokenPI: {
                     value: ''
+                },
+                achFields: {
+                    achAccountType: {
+                        value: paymentForm.achFields.accountType.value,
+                        htmlName: paymentForm.achFields.accountType.htmlName
+                    },
+                    achAccountNumber: {
+                        value: paymentForm.achFields.accountNumber.value,
+                        htmlName: paymentForm.achFields.accountNumber.htmlName
+                    },
+                    achRoutingNumber: {
+                        value: paymentForm.achFields.routingNumber.value,
+                        htmlName: paymentForm.achFields.routingNumber.htmlName
+                    },
+                    achCheckNumber: {
+                        value: paymentForm.achFields.checkNumber.value,
+                        htmlName: paymentForm.achFields.checkNumber.htmlName
+                    },
+                    achCompanyName: {
+                        value: paymentForm.achFields.accountType.value && (paymentForm.achFields.accountType.value.toString().toLowerCase() === worldpayConstants.CORPORATE || paymentForm.achFields.accountType.value.toString().toLowerCase() === worldpayConstants.CORPSAVINGS) ? paymentForm.achFields.companyName.value : '',
+                        htmlName: paymentForm.achFields.companyName.htmlName
+                    }
                 }
-
 
             };
 
@@ -166,11 +206,7 @@ server.prepend(
                 paymentForm.creditCardFields.securityCode.value = req.form.securityCode;
             }
 
-            viewData.email = {
-                value: paymentForm.billingUserFields.email.value
-            };
-
-            viewData.phone = { value: paymentForm.billingUserFields.phone.value };
+            viewData.phone = { value: paymentForm.contactInfoFields.phone.value };
 
             viewData.saveCard = paymentForm.creditCardFields.saveCard.checked;
             // new card added and opted to save, no need delete the token
@@ -184,7 +220,7 @@ server.prepend(
             if (viewData.paymentMethod.value === 'CREDIT_CARD' && ccSecurityModel === 'WEB_SDK' && !viewData.storedPaymentUUID) {
                 var serviceResult = WorldpayPayment.enquireToken();
                 if (serviceResult.success) {
-                    viewData.paymentInformation.cardOwner.value = paymentForm.creditCardFields.cardOwner.value;
+                    viewData.paymentInformation.cardOwner.value = serviceResult.enquireServiceResult.serviceresponse.webCSDKCCHolderName;
                     viewData.paymentInformation.cardNumber.value = serviceResult.enquireServiceResult.serviceresponse.webCSDKCCNumber;
                     viewData.paymentInformation.cardType.value = serviceResult.enquireServiceResult.serviceresponse.webCSDKCCType;
                             // viewData.paymentInformation.securityCode.value = req.form.securityCode;
@@ -208,6 +244,7 @@ server.prepend(
             var billingData = res.getViewData();
             if (!currentBasket) {
                 delete billingData.paymentInformation;
+                Logger.getLogger('worldpay').error('Redirecting from CheckoutServices-SubmitPayment to Cart-Show : cartError = true');
                 res.json({
                     error: true,
                     cartError: true,
@@ -242,7 +279,6 @@ server.prepend(
                 billingAddress.setCountryCode(billingData.address.countryCode.value);
 
                 billingAddress.setPhone(billingData.phone.value);
-                currentBasket.setCustomerEmail(billingData.email.value);
             });
 
             // if there is no selected payment option and balance is greater than zero
@@ -281,6 +317,18 @@ server.prepend(
                 var paymentInstrument = array.find(paymentInstruments, function (item) {
                     return billingData.storedPaymentUUID === item.UUID;
                 });
+
+                if (!paymentInstrument) {
+                    var utils = require('*/cartridge/scripts/common/utils');
+                    var savedCardNotFoundError = utils.getConfiguredLabel('worldpay.error.saved.card.not.found', 'worldpayError');
+                    res.json({
+                        error: true,
+                        fieldErrors: [],
+                        serverErrors: [savedCardNotFoundError]
+                    });
+                    this.emit('route:Complete', req, res);
+                    return;
+                }
 
                 billingData.paymentInformation.cardOwner.value = paymentInstrument.creditCardHolder;
                 billingData.paymentInformation.cardNumber.value = paymentInstrument.creditCardNumber;

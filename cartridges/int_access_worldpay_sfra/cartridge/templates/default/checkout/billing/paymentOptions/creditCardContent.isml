@@ -1,19 +1,19 @@
 <iscomment>
     applicable credit cards
 </iscomment>
-<div class="tab-pane <isif condition=" ${!selectedPaymentInstrument.paymentMethod || selectedPaymentInstrument.paymentMethod === paymentOption.ID ||
+<div class="tab-pane payment-form-content <isif condition=" ${!selectedPaymentInstrument.paymentMethod || selectedPaymentInstrument.paymentMethod === paymentOption.ID ||
                                        selectedPaymentInstrument.paymentMethod === 'CREDIT_CARD'}">active</isif> credit-card-content"
 id="credit-card-content" role="tabpanel">
 
 <iscomment>
     payment method is credit card
 </iscomment>
-    <input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}"
-       value="CREDIT_CARD"/>
+<input type="hidden" class="form-control" name="${pdict.forms.billingForm.paymentMethod.htmlName}" value="CREDIT_CARD"/>
 
 <iscomment>
     register/authenticated user
 </iscomment>
+
 <isif condition="${pdict.customer.registeredUser}">
     <div
         class="user-payment-instruments container ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? '' : 'checkout-hidden'}">
@@ -22,7 +22,7 @@ id="credit-card-content" role="tabpanel">
             Stored user payments
         </iscomment>
         <div
-            class="stored-payments">
+            class="stored-payments ${pdict.order.billing.payment.worldpayEnableTokenization ? '' : 'tokenization-disabled'}">
             <isinclude template="checkout/billing/storedPaymentInstruments"/>
         </div>
 
@@ -35,6 +35,7 @@ id="credit-card-content" role="tabpanel">
         </div>
     </div>
 </isif>
+
 <fieldset class="credit-card-form ${pdict.customer.registeredUser && pdict.customer.customerPaymentInstruments.length ? 'checkout-hidden' : ''}">
     <isinclude template="checkout/billing/creditCardForm"/>
     <isif condition="${ccSecurityModel == 'WEB_SDK'}">

@@ -1,39 +1,117 @@
 <isset name="ccSecurityModel" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('ccSecurityModel').value}" scope="page"/>
-<isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
-    <div class="row saved-payment-instrument ${loopState.first ? 'selected-payment' : ''}" data-uuid="${paymentInstrument.UUID}">
-        <div class="form-group required saved-security-code col-5 col-md-3">
-            <isif condition="${!dw.system.Site.current.preferences.custom.isAWPCvvDisabled && ccSecurityModel == 'DIRECT'}">
-                <img class="card-image ${loopState.first ? 'checkout-hidden' : ''}"
-                     src="${paymentInstrument.cardTypeImage.src}"
-                     alt="${paymentInstrument.cardTypeImage.alt}"
-                />
-            <iselse>
-                <img src="${paymentInstrument.cardTypeImage.src}" alt="${paymentInstrument.cardTypeImage.alt}"/>
-            </isif>
-            <isif condition="${!dw.system.Site.current.preferences.custom.isAWPCvvDisabled && ccSecurityModel == 'DIRECT'}">
-                 <div class="security-code-input ${loopState.first ? '' : 'checkout-hidden'}">
-                       <label class="form-control-label" for="saved-payment-security-code">${Resource.msg('label.credit.card-security.code','checkout',null)}</label>
-                       <input type="text" class="form-control saved-payment-security-code" id="saved-payment-security-code" maxlength="4"/>
-                       <div class="invalid-feedback">${Resource.msg('error.message.security.code.required', 'checkout', null)}</div>
-                   </div>
-             </isif>
+<input type="hidden" class="ccSecurityModel" id="webCvvSDK" value="${(ccSecurityModel == 'WEB_SDK') && (!dw.system.Site.current.preferences.custom.isAWPCvvDisabled)}"/>
+<isscript>
+    var utils = require('*/cartridge/scripts/common/utils.js');
+</isscript>
+<isif condition="${!dw.system.Site.current.preferences.custom.isAWPCvvDisabled}">
+    <isif condition="${ccSecurityModel == 'DIRECT'}">
+        <isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
+            <div class="row saved-payment-instrument ${loopState.first ? 'selected-payment' : ''}" data-uuid="${paymentInstrument.UUID}">
+                <div class="form-group required saved-security-code col-5 col-md-3">
+                    <img class="card-image ${loopState.first ? 'checkout-hidden' : ''}"
+                         src="${paymentInstrument.cardTypeImage.src}"
+                         alt="${paymentInstrument.cardTypeImage.alt}"
+                    />
+                    <div class="security-code-input ${loopState.first ? '' : 'checkout-hidden'}">
+                        <label class="form-control-label" for="saved-payment-security-code">${Resource.msg('label.credit.card-security.code','checkout',null)}</label>
+                        <input type="text" class="form-control saved-payment-security-code" id="saved-payment-security-code" maxlength="4"/>
+                        <div class="invalid-feedback">${Resource.msg('error.message.security.code.required', 'checkout', null)}</div>
+                    </div>
+                </div>
+                <div class="saved-payment-information col-7 col-md-9">
+                    <div class="saved-credit-card-type">
+                        <span>
+                            ${Resource.msg('msg.payment.type.credit', 'confirmation', null)}
+                            ${paymentInstrument.creditCardType}
+                        </span>
+                    </div>
+                    <div class="saved-credit-card-number">
+                        ${paymentInstrument.maskedCreditCardNumber}
+                    </div>
+                    <div class="saved-credit-card-expiration-date">
+                        <span>
+                            ${Resource.msg('msg.card.type.ending', 'confirmation', null)}
+                            ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </isloop>
+    <iselse>
+        <isif condition="${'webCSDKScript' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.webCSDKScript != ''}">
+            <script src="${dw.system.Site.current.preferences.custom.webCSDKScript}"></script>
+        </isif>
+        <isif condition="${'webCSDKIdentity' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.webCSDKIdentity != ''}">
+            <input id="webCSDKIdentity" type="hidden" name="webCSDKIdentity" value="${dw.system.Site.current.preferences.custom.webCSDKIdentity}" />
+        </isif>
+        <input id="setCVVSession" type="hidden" name="generateCVV" value="${URLUtils.url('Worldpay-SessionHref')}" />
+        <input id="clearCVVSession" type="hidden" name="clearCVV" value="${URLUtils.url('Worldpay-ClearSessionHref')}" />
+        <form class="checkouts cvv-forms" id="cvv-forms"></form>
+        <isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
+            <div class="row saved-payment-instrument ${loopState.first ? 'selected-payment' : ''}" data-uuid="${paymentInstrument.UUID}">
+                <div class="form-group required saved-security-code col-5 col-md-3">
+                    <img class="card-image ${loopState.first ? 'checkout-hidden' : ''}"
+                         src="${paymentInstrument.cardTypeImage.src}"
+                         alt="${paymentInstrument.cardTypeImage.alt}"
+                    />
+                    <div class="security-code-input ${loopState.first ? '' : 'checkout-hidden'}">
+                        <section class="container">
+                            <section class="cvvSDK cvv">
+                                <form class="cvvSDK__form checkout cvv-form" id="cvv-form_${loopState.index}">
+                                    <section class="field cvv-field" id="cvv-field_${loopState.index}"></section>
+                                    <button type="submit" class="cvvSubmit" id="cvvSubmit_${loopState.index}">${Resource.msg('websdk.cvv.form.confirm', 'worldpay', null)}</button>
+                                    <button class="clear-cvv" id="clear_${loopState.index}">${Resource.msg('websdk.cvv.form.clear', 'worldpay', null)}</button>
+                                </form>
+                            </section>
+                        </section>
+                    </div>
+                </div>
+                <div class="saved-payment-information col-7 col-md-9">
+                    <div id="cvvConfirmed_${loopState.index}" class="cvv-confirm">${utils.getConfiguredLabel('websdk.cvv.form.confirmed', 'worldpay')}</div>
+                    <div id="cvvError_${loopState.index}" class="cvv-error">${utils.getConfiguredLabel('websdk.cvv.form.error', 'worldpay')}</div>
+                    <div class="saved-credit-card-type">
+                        <span>
+                            ${Resource.msg('msg.payment.type.credit', 'confirmation', null)}
+                            ${paymentInstrument.creditCardType}
+                        </span>
+                    </div>
+                    <div class="saved-credit-card-number">
+                        ${paymentInstrument.maskedCreditCardNumber}
+                    </div>
+                    <div class="saved-credit-card-expiration-date">
+                        <span>
+                            ${Resource.msg('msg.card.type.ending', 'confirmation', null)}
+                            ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </isloop>
+    </isif>
+<iselse>
+    <isloop items="${pdict.customer.customerPaymentInstruments}" var="paymentInstrument" status="loopState">
+        <div class="row saved-payment-instrument ${loopState.first ? 'selected-payment' : ''}" data-uuid="${paymentInstrument.UUID}">
+            <div class="form-group required saved-security-code col-5 col-md-3">
+                    <img src="${paymentInstrument.cardTypeImage.src}" alt="${paymentInstrument.cardTypeImage.alt}"/>
+            </div>
+            <div class="saved-payment-information col-7 col-md-9">
+                <div class="saved-credit-card-type">
+                    <span>
+                        ${Resource.msg('msg.payment.type.credit', 'confirmation', null)}
+                        ${paymentInstrument.creditCardType}
+                    </span>
+                </div>
+                <div class="saved-credit-card-number">
+                    ${paymentInstrument.maskedCreditCardNumber}
+                </div>
+                <div class="saved-credit-card-expiration-date">
+                    <span>
+                        ${Resource.msg('msg.card.type.ending', 'confirmation', null)}
+                        ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}
+                    </span>
+                </div>
+            </div>
         </div>
-        <div class="saved-payment-information col-7 col-md-9">
-            <div class="saved-credit-card-type">
-                <span>
-                    ${Resource.msg('msg.payment.type.credit', 'confirmation', null)}
-                    ${paymentInstrument.creditCardType}
-                </span>
-            </div>
-            <div class="saved-credit-card-number">
-                ${paymentInstrument.maskedCreditCardNumber}
-            </div>
-            <div class="saved-credit-card-expiration-date">
-                <span>
-                    ${Resource.msg('msg.card.type.ending', 'confirmation', null)}
-                    ${paymentInstrument.creditCardExpirationMonth}/${paymentInstrument.creditCardExpirationYear}
-                </span>
-            </div>
-        </div>
-    </div>
-</isloop>
+    </isloop>
+</isif>
+

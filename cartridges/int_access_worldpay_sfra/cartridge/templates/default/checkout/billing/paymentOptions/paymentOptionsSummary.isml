@@ -1,9 +1,10 @@
 <isset name="resources" value="${pdict.order.billing.payment.resources}" scope="page"/>
+<input type="hidden" id="currentPage" value="" />
 <div class="payment-details">
     <isloop items="${pdict.order.billing.payment.selectedPaymentInstruments}" var="payment">
         <isif condition="${payment.paymentMethod === 'CREDIT_CARD'}">
             <isinclude template="checkout/billing/paymentOptions/creditCardSummary" />
-             <div id="hidden-card-number" data-number="${payment.ccnum}" style="display:none"></div>
+             <div id="hidden-card-number" data-number="${payment.ccnum}"></div>
         <iselse/>
             <div>
                 <span>${resources.paymentByLabel}

@@ -1,0 +1,7 @@
+
+<!--- TEMPLATENAME: instantCheckout.isml --->
+<div class="mb-sm-3 checkout-instant">
+    <button id="instant-pay-now" data-target="${URLUtils.url('CheckoutInstant-Start')}" class="btn btn-primary btn-block checkout-btn ${pdict.valid.error ? 'disabled' : ''}" role="button">
+        ${Resource.msg('button.instant.purchase', 'cart',null)}
+    </button>
+</div>

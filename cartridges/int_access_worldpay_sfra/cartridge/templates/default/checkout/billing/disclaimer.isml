@@ -2,7 +2,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title request-password-title">${Resource.msg('worldpay.disclaimer.link', 'worldpay', null)}</h2>
+                <h2 class="modal-title request-password-title">${utils.getConfiguredLabel('worldpay.disclaimer.link', 'worldpay')}</h2>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                     aria-hidden="true">&times;</span></button>
             </div>
@@ -16,7 +16,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default cldis"
-                        data-dismiss="modal">${Resource.msg('worldpay.disclaimer.modalclose', 'worldpay', null)}</button>
+                        data-dismiss="modal">${utils.getConfiguredLabel('worldpay.disclaimer.modalclose', 'worldpay')}</button>
             </div>
         </div>
     </div>
@@ -31,11 +31,11 @@
     <input id="showDisclaimer" type="hidden" name="showDisclaimer" value="${dw.system.Site.current.preferences.custom.AWPshowDisclaimer}" />
 </isif>
 
-<div id="disclaimererror" style="display:none; color:red;">
+<div id="disclaimererror">
     <input id="clickeventdis" type="hidden" name="clickeventdis" value="" />
-    ${Resource.msg('worldpay.ccdisclaimer.msg', 'worldpay', null)}
+    ${utils.getConfiguredLabel('worldpay.ccdisclaimer.msg', 'worldpay')}
 </div>
 
-<div id="chosetosave" style="display:none;color:red;">
-    ${Resource.msg('worldpay.ccchosetosave.msg', 'worldpay', null)}
+<div id="chosetosave">
+    ${utils.getConfiguredLabel('worldpay.ccchosetosave.msg', 'worldpay')}
 </div>

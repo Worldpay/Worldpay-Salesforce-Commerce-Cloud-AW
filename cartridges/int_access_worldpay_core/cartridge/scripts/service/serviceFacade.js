@@ -1,12 +1,30 @@
 'use strict';
 
-var LibCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
+var libCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
 var Utils = require('*/cartridge/scripts/common/utils');
 var Logger = require('dw/system/Logger');
-var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
-var ServiceResponseHandler = require('*/cartridge/scripts/service/serviceResponseHandler');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+var serviceResponseHandler = require('*/cartridge/scripts/service/serviceResponseHandler');
 var Resource = require('dw/web/Resource');
 var Site = require('dw/system/Site');
+var system = require('dw/system/System');
+var previousCartridgeVersion = Site.getCurrent().getCustomPreferenceValue('previousCartridgeVersion');
+var upgradeDates = Site.getCurrent().getCustomPreferenceValue('previousPluginUpgradeDates');
+var merchantEntity = Site.getCurrent().getCustomPreferenceValue('merchantEntity');
+var merchant = Site.getCurrent().getCustomPreferenceValue('AWPMerchantID');
+var sfraVersion = Resource.msg('global.version.number', 'version', null);
+var currentCartrideVersion = Resource.msg('Worldpay.version', 'version', null);
+var cVersion; var previousUpgradeDates;
+if (previousCartridgeVersion) {
+    cVersion = previousCartridgeVersion.join(',');
+}
+if (upgradeDates) {
+    previousUpgradeDates = upgradeDates.join(',');
+}
+var modeSupported = system.getCompatibilityMode();
+var compMode = parseFloat(modeSupported) / 100;
+var compatibilityMode = compMode.toString();
+
 /**
  * Service wrapper for Credit Card orders Access Worldpay
  * @param {dw.order.Order} orderObj - Current users's Order
@@ -18,7 +36,10 @@ var Site = require('dw/system/Site');
  */
 function ccAuthorizeRequestServiceAWP(orderObj, cvn, paymentInstrument, preferences, authentication3ds) {
     var result; var parsedResponse; var errorCode; var errorMessage;
-    var order = LibCreateRequest.createInitialRequestCcAwp(orderObj, cvn, paymentInstrument, preferences, authentication3ds);
+    var order = libCreateRequest.createInitialRequestCcAwp(orderObj, cvn, paymentInstrument, preferences, authentication3ds);
+    if (session.privacy.riskProfile) {
+        delete session.privacy.riskProfile;
+    }
     if (!order) {
         errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
         errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
@@ -28,10 +49,19 @@ function ccAuthorizeRequestServiceAWP(orderObj, cvn, paymentInstrument, preferen
             errorMessage: errorMessage
         };
     }
-    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
-    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, WorldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('request' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, worldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -56,7 +86,7 @@ function ccAuthorizeRequestServiceAWP(orderObj, cvn, paymentInstrument, preferen
  */
 function ccIntelligentTokenRequestServiceAWP(paymentInstrument, preferences, customer) {
     var result; var parsedResponse; var errorCode; var errorMessage; var conflictMsg;
-    var tokenRequest = LibCreateRequest.createIntelligentTokenRequestCcAwp(paymentInstrument, customer);
+    var tokenRequest = libCreateRequest.createIntelligentTokenRequestCcAwp(paymentInstrument, customer);
     if (!tokenRequest) {
         errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
         errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
@@ -68,10 +98,18 @@ function ccIntelligentTokenRequestServiceAWP(paymentInstrument, preferences, cus
     }
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.verified-tokens-v2.hal+json',
-        Accept: 'application/vnd.worldpay.verified-tokens-v2.hal+json'
+        Accept: 'application/vnd.worldpay.verified-tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
-    var responseObject = Utils.serviceCallAWP(tokenRequest, requestHeader, preferences, WorldpayConstants.VERIFIED_TOKEN_SERVICE_ID);
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(tokenRequest, requestHeader, preferences, worldpayConstants.VERIFIED_TOKEN_SERVICE_ID);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     // eslint-disable-next-line eqeqeq
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.errorCode == '409') {
         result = handleResult.errorMessage;
@@ -105,7 +143,7 @@ function ccIntelligentTokenRequestServiceAWP(paymentInstrument, preferences, cus
  */
 function ccTokenRequestServiceAWP(orderObj, paymentInstrument, preferences) {
     var result; var parsedResponse; var errorCode; var errorMessage; var conflictMsg;
-    var tokenRequest = LibCreateRequest.createTokenRequestCcAwp(orderObj, paymentInstrument);
+    var tokenRequest = libCreateRequest.createTokenRequestCcAwp(orderObj, paymentInstrument);
     if (!tokenRequest) {
         errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
         errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
@@ -119,8 +157,8 @@ function ccTokenRequestServiceAWP(orderObj, paymentInstrument, preferences) {
         'Content-Type': 'application/vnd.worldpay.tokens-v1.hal+json',
         Accept: 'application/vnd.worldpay.tokens-v1.hal+json'
     };
-    var responseObject = Utils.serviceCallAWP(tokenRequest, requestHeader, preferences, WorldpayConstants.TOKEN_SERVICE_ID);
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var responseObject = Utils.serviceCallAWP(tokenRequest, requestHeader, preferences, worldpayConstants.TOKEN_SERVICE_ID);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     // eslint-disable-next-line eqeqeq
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.errorCode == '409') {
         result = handleResult.errorMessage;
@@ -157,10 +195,18 @@ function deleteToken(cToken) {
     var responseObject; var handleResult;
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.tokens-v1.hal+json',
-        Accept: 'application/vnd.worldpay.tokens-v1.hal+json'
+        Accept: 'application/vnd.worldpay.tokens-v1.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
-    responseObject = Utils.serviceCallWithURL(requestHeader, WorldpayConstants.TOKEN_SERVICE_ID, cToken, 'DELETE');
-    handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    responseObject = Utils.serviceCallWithURL(requestHeader, worldpayConstants.TOKEN_SERVICE_ID, cToken, 'DELETE');
+    handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -178,9 +224,9 @@ function deleteToken(cToken) {
 function cscActions(url) {
     var result; var parsedResponse;
     var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
-    var responseObject = Utils.serviceCallWithURL(requestHeader, WorldpayConstants.PAYMENT_SERVICE_ID, url);
+    var responseObject = Utils.serviceCallWithURL(requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, url);
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -207,19 +253,21 @@ function jwtTokenRequest(order, pi, preferences) {
     var JWTRequest;
     var ccSecurityModel = Site.current.getCustomPreferenceValue('ccSecurityModel').value;
     if (pi.paymentMethod.equals('CREDIT_CARD') && ccSecurityModel === 'DIRECT') {
-        JWTRequest = LibCreateRequest.createJWTRequest(order, pi, preferences);
+        JWTRequest = libCreateRequest.createJWTRequest(order, pi, preferences);
     } else if (pi.paymentMethod.equals('CREDIT_CARD') && ccSecurityModel === 'WEB_SDK') {
-        JWTRequest = LibCreateRequest.createJWTRequestForWCSDK(order, pi, preferences);
+        JWTRequest = libCreateRequest.createJWTRequestForWCSDK(order, pi, preferences);
     }
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.verifications.customers-v2.hal+json',
         Accept: 'application/vnd.worldpay.verifications.customers-v2.hal+json'
     };
-    var responseObject = Utils.serviceCallAWP(JWTRequest, requestHeader, preferences, WorldpayConstants.THREE_DS_SERVICE_ID,
+    var responseObject = Utils.serviceCallAWP(JWTRequest, requestHeader, preferences, worldpayConstants.THREE_DS_SERVICE_ID,
         preferences.getAPIEndpoint('3ds', 'jwt'));
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
-    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error)    	{ return handleResult; }
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
 
     result = responseObject.object;
     parsedResponse = Utils.parseResponse(result);
@@ -245,18 +293,18 @@ function authenticationRequest3Ds(orderObj, paymentInstrument, preferences, sess
     var request;
     var ccSecurityModel = Site.current.getCustomPreferenceValue('ccSecurityModel').value;
     if (paymentInstrument.paymentMethod.equals('CREDIT_CARD') && ccSecurityModel === 'DIRECT') {
-        request = LibCreateRequest.create3DsRequest(orderObj, paymentInstrument, preferences, sessionID);
+        request = libCreateRequest.create3DsRequest(orderObj, paymentInstrument, preferences, sessionID);
     } else if (paymentInstrument.paymentMethod.equals('CREDIT_CARD') && ccSecurityModel === 'WEB_SDK') {
-        request = LibCreateRequest.create3DsRequestWCSDK(orderObj, paymentInstrument, preferences, sessionID);
+        request = libCreateRequest.create3DsRequestWCSDK(orderObj, paymentInstrument, preferences, sessionID);
     }
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.verifications.customers-v1.hal+json',
         Accept: 'application/vnd.worldpay.verifications.customers-v1.hal+json'
     };
-    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, WorldpayConstants.THREE_DS_SERVICE_ID,
+    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, worldpayConstants.THREE_DS_SERVICE_ID,
         preferences.getAPIEndpoint('3ds', 'authentication'));
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -284,15 +332,23 @@ function authenticationRequest3Ds(orderObj, paymentInstrument, preferences, sess
 function verificationRequest3ds(orderNo, preferences, reference3ds) {
     var result; var parsedResponse;
 
-    var request = LibCreateRequest.create3DsVerificationRequest(orderNo, reference3ds);
+    var request = libCreateRequest.create3DsVerificationRequest(orderNo, reference3ds);
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.verifications.customers-v2.hal+json',
-        Accept: 'application/vnd.worldpay.verifications.customers-v2.hal+json'
+        Accept: 'application/vnd.worldpay.verifications.customers-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
-    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, WorldpayConstants.THREE_DS_SERVICE_ID,
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, worldpayConstants.THREE_DS_SERVICE_ID,
         preferences.getAPIEndpoint('3ds', 'verification'));
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -319,12 +375,21 @@ function verificationRequest3ds(orderNo, preferences, reference3ds) {
  */
 function gpayServiceWrapper(orderObj, paymentInstrument, preferences) {
     var result; var parsedResponse;
+    var gPayMerchantID = Site.getCurrent().getCustomPreferenceValue('AWPGooglePayMerchantID');
+    var request = libCreateRequest.createAuthRequestGpay(orderObj, paymentInstrument, preferences);
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': gPayMerchantID,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, worldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
 
-    var request = LibCreateRequest.createAuthRequestGpay(orderObj, paymentInstrument, preferences);
-    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
-    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, WorldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
-
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -351,11 +416,20 @@ function gpayServiceWrapper(orderObj, paymentInstrument, preferences) {
  */
 function cscPartialActions(url, orderNumber, referenceAmount, currency) {
     var result; var parsedResponse;
-    var request = LibCreateRequest.createInitialRequestPartialActions(referenceAmount, currency);
-    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
-    var responseObject = Utils.serviceCallPartialActions(request, requestHeader, WorldpayConstants.PAYMENT_SERVICE_ID, url, 'POST');
+    var request = libCreateRequest.createInitialRequestPartialActions(referenceAmount, currency);
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallPartialActions(request, requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, url, 'POST');
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -381,7 +455,7 @@ function cscPartialActions(url, orderNumber, referenceAmount, currency) {
  */
 function ccVerifiedTokenRequestServiceAWP(sessionID, wsdkname, customerObject) {
     var result; var parsedResponse; var errorCode; var errorMessage; var conflictMsg;
-    var verifiedTokenRequest = LibCreateRequest.createVerifiedTokenRequestCcAwp(sessionID, wsdkname, customerObject);
+    var verifiedTokenRequest = libCreateRequest.createVerifiedTokenRequestCcAwp(sessionID, wsdkname, customerObject);
     if (!verifiedTokenRequest) {
         errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
         errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
@@ -393,11 +467,19 @@ function ccVerifiedTokenRequestServiceAWP(sessionID, wsdkname, customerObject) {
     }
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.verified-tokens-v2.hal+json',
-        Accept: 'application/vnd.worldpay.verified-tokens-v2.hal+json'
+        Accept: 'application/vnd.worldpay.verified-tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
-    var responseObject = Utils.serviceCallAWP(verifiedTokenRequest, requestHeader, null, WorldpayConstants.VERIFIED_TOKEN_SERVICE_ID);
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(verifiedTokenRequest, requestHeader, null, worldpayConstants.VERIFIED_TOKEN_SERVICE_ID);
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.errorCode === 409) {
         result = handleResult.errorMessage;
         conflictMsg = handleResult.conflictMsg;
@@ -423,6 +505,64 @@ function ccVerifiedTokenRequestServiceAWP(sessionID, wsdkname, customerObject) {
 }
 
 /**
+ * Verify Token call - Direct
+ * @param {string} cardHolderName The card holder name
+ * @param {Object} customerObject Customer Details
+ * @param {string} cvn Security Number
+ * @param {Object} pi Payment Instrument
+ * @returns {Object} verified token response
+ */
+function ccVerifiedTokenRequestServiceAWPDirect(cardHolderName, customerObject, cvn, pi) {
+    var result; var parsedResponse; var errorCode; var errorMessage; var conflictMsg;
+    var verifiedTokenRequest = libCreateRequest.createVerifiedTokenRequestCcAwpDirect(cardHolderName, customerObject, cvn, pi);
+    if (!verifiedTokenRequest) {
+        errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
+        errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
+        return {
+            error: true,
+            errorCode: errorCode,
+            errorMessage: errorMessage
+        };
+    }
+    var requestHeader = {
+        'Content-Type': 'application/vnd.worldpay.verified-tokens-v2.hal+json',
+        Accept: 'application/vnd.worldpay.verified-tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(verifiedTokenRequest, requestHeader, null, worldpayConstants.VERIFIED_TOKEN_SERVICE_ID);
+
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.errorCode === 409) {
+        result = handleResult.errorMessage;
+        conflictMsg = handleResult.conflictMsg;
+    }
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error && handleResult.errorCode !== 409) {
+        return handleResult;
+    }
+    // eslint-disable-next-line eqeqeq
+    if (handleResult && handleResult.errorCode != '409') {
+        result = responseObject.object;
+    }
+    parsedResponse = Utils.parseResponse(result);
+    var maskedResponse = Utils.getLoggableRequestAWP(result);
+    Logger.getLogger('worldpay').debug('ccVerifiedTokenRequestService Response string : ' + maskedResponse);
+
+    return {
+        error: false,
+        errorCode: errorCode,
+        serviceResponse: parsedResponse,
+        responseObject: responseObject,
+        conflictMsg: conflictMsg
+    };
+}
+/**
  * Service wrapper for WebCSDK Authorization
  * @param {dw.order.Order} orderObj - Current users's Order
  * @param {dw.order.PaymentInstrument} paymentInstrument - payment instrument object
@@ -432,7 +572,10 @@ function ccVerifiedTokenRequestServiceAWP(sessionID, wsdkname, customerObject) {
  */
 function webCSDKAuth(orderObj, paymentInstrument, preferences, authentication3ds) {
     var result; var parsedResponse; var errorCode; var errorMessage;
-    var order = LibCreateRequest.createAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authentication3ds);
+    var order = libCreateRequest.createAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authentication3ds);
+    if (session.privacy.riskProfile) {
+        delete session.privacy.riskProfile;
+    }
     if (!order) {
         errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
         errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
@@ -442,10 +585,18 @@ function webCSDKAuth(orderObj, paymentInstrument, preferences, authentication3ds
             errorMessage: errorMessage
         };
     }
-    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
-    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, WorldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, worldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
 
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -462,6 +613,57 @@ function webCSDKAuth(orderObj, paymentInstrument, preferences, authentication3ds
     };
 }
 
+/**
+ * Service wrapper for WebCSDK + CVV Authorization
+ * @param {dw.order.Order} orderObj - Current users's Order
+ * @param {dw.order.PaymentInstrument} paymentInstrument - payment instrument object
+ * @param {Object} preferences - worldpay preferences
+ * @param {Object} authentication3ds - 3ds authentication response data
+ * @return {Object} returns an JSON objectAR
+ */
+function webCSDKCVVCheckoutAuth(orderObj, paymentInstrument, preferences, authentication3ds) {
+    var result; var parsedResponse; var errorCode; var errorMessage;
+    var order = libCreateRequest.createCVVAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authentication3ds);
+    if (session.privacy.riskProfile) {
+        delete session.privacy.riskProfile;
+    }
+    if (!order) {
+        errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
+        errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
+        return {
+            error: true,
+            errorCode: errorCode,
+            errorMessage: errorMessage
+        };
+    }
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, worldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'migrateCardOnFileAuthorize'));
+
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
+
+    result = responseObject.object;
+    parsedResponse = Utils.parseResponse(result);
+    var maskedResponse = Utils.getLoggableRequestAWP(result);
+    Logger.getLogger('worldpay').debug('WebCheckoutSDK CVV Authorization Response string : ' + maskedResponse);
+
+    return {
+        success: true,
+        serviceresponse: parsedResponse,
+        responseObject: responseObject
+    };
+}
 
 /**
  * Service wrapper for Inquiry Token
@@ -474,12 +676,19 @@ function enquireToken(token) {
     var parsedResponse;
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.tokens-v2.hal+json',
-        Accept: 'application/vnd.worldpay.tokens-v2.hal+json'
+        Accept: 'application/vnd.worldpay.tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallWithURL(requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, awpCCToken, 'GET');
 
-    var responseObject = Utils.serviceCallWithURL(requestHeader, WorldpayConstants.PAYMENT_SERVICE_ID, awpCCToken, 'GET');
-
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -507,12 +716,19 @@ function updateToken(tobeupdated, tobeupdatedURL) {
     var parsedResponse;
     var requestHeader = {
         'Content-Type': 'application/vnd.worldpay.tokens-v2.hal+json',
-        Accept: 'application/vnd.worldpay.tokens-v2.hal+json'
+        Accept: 'application/vnd.worldpay.tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
     };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallPartialActions(tobeupdated, requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, tobeupdatedURL, 'PUT');
 
-    var responseObject = Utils.serviceCallPartialActions(tobeupdated, requestHeader, WorldpayConstants.PAYMENT_SERVICE_ID, tobeupdatedURL, 'PUT');
-
-    var handleResult = ServiceResponseHandler.validateServiceResponse(responseObject);
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
     if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
         return handleResult;
     }
@@ -520,6 +736,169 @@ function updateToken(tobeupdated, tobeupdatedURL) {
     result = responseObject.object;
     parsedResponse = Utils.parseResponse(result);
     Logger.getLogger('worldpay').debug('Update token service triggered successfully');
+
+    return {
+        success: true,
+        serviceresponse: parsedResponse,
+        responseObject: responseObject
+    };
+}
+
+/**
+ * Service wrapper for update token from my account
+ * @param {string} tobeupdatedURL -updation URL
+ * @return {Object} returns Token Card details for the given Token Id
+ */
+function updateTokenDetails(tobeupdatedURL) {
+    var result;
+    var parsedResponse;
+    var requestHeader = {
+        'Content-Type': 'application/vnd.worldpay.tokens-v2.hal+json',
+        Accept: 'application/vnd.worldpay.tokens-v2.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.updateTokenServiceCall(requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, tobeupdatedURL, 'PUT');
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
+    result = responseObject.object;
+    parsedResponse = Utils.parseResponse(result);
+    Logger.getLogger('worldpay').debug('Update token service triggered successfully');
+    return {
+        success: true,
+        serviceresponse: parsedResponse,
+        responseObject: responseObject
+    };
+}
+
+/**
+ *  * Service wrapper for Credit Card Exemption Engine Access Worldpay
+ * @param {Object} orderObj - Order object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - paymentInstrument for which token will be created
+ * @param {Object} preferences - Object containing AWP site preferences
+ * @param {string} tokenUrl verified token URL
+ * @returns {Object} returns an JSON object
+ */
+function validateOrderExemption(orderObj, paymentInstrument, preferences) {
+    var result; var parsedResponse; var errorCode; var errorMessage;
+    var order = libCreateRequest.createOrderExemptionRequest(orderObj, paymentInstrument, preferences);
+    if (!order) {
+        errorCode = Resource.msg('service.invalid.request', 'worldpay', null);
+        errorMessage = Resource.msg('service.invalid.request.msg', 'worldpay', null);
+        return {
+            error: true,
+            errorCode: errorCode,
+            errorMessage: errorMessage
+        };
+    }
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.exemptions-v1.hal+json',
+        Accept: 'application/vnd.worldpay.exemptions-v1.hal+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+
+    var responseObject = Utils.serviceCallAWP(order, requestHeader, preferences, worldpayConstants.EXEMPTION_SERVICE_ID, preferences.getAPIEndpoint('exemption', 'assessment'));
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
+
+    result = responseObject.object;
+    parsedResponse = Utils.parseResponse(result);
+    var maskedResponse = Utils.getLoggableRequestAWP(result);
+    Logger.getLogger('worldpay').debug('Order Exemption Engine service triggered successfully and the response is: ' + maskedResponse);
+
+    return {
+        success: true,
+        serviceresponse: parsedResponse,
+        responseObject: responseObject
+    };
+}
+
+/**
+ * Service wrapper for ACH Pay Authorization
+ * @param {Object} orderObj - current order object
+ * @param {dw.order.PaymentInstrument} paymentInstrument - order payment instrument
+ * @param {Object} preferences - worldpay site preferences
+ * @return {Object} returns JSON object
+ */
+function achpayServiceWrapper(orderObj, paymentInstrument, preferences) {
+    var result; var parsedResponse;
+    var request = libCreateRequest.createRequestACHPay(orderObj, paymentInstrument, preferences);
+
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.pay-direct-v1+json',
+        Accept: 'application/vnd.worldpay.pay-direct-v1+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallAWP(request, requestHeader, preferences, worldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'achpayDirectSale'));
+
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
+
+    result = responseObject.object;
+    parsedResponse = Utils.parseResponse(result);
+    var maskedResponse = Utils.getLoggableRequestAWP(result);
+    Logger.getLogger('worldpay').debug('ACH Pay AuthorizeRequestService Response string : : ' + maskedResponse);
+
+    return {
+        success: true,
+        serviceresponse: parsedResponse,
+        responseObject: responseObject
+    };
+}
+
+/**
+ * Service wrapper for VoidSale service
+ * @param {dw.order.Order} orderObj - Current users's Order
+ * @param {Object} paymentMthd - Current payment method
+ * @return {Object} returns an JSON object
+ */
+function voidSaleService(orderObj) {
+    var voidSaleUrl = orderObj.custom.achpayVoidSaleUrl;
+    var result;
+    var parsedResponse;
+    var requestHeader = { 'Content-Type': 'application/vnd.worldpay.pay-direct-v1+json',
+        Accept: 'application/vnd.worldpay.pay-direct-v1+json',
+        'MERCHANT-ENTITY-REF': merchantEntity,
+        'MERCHANT-ID': merchant,
+        'SFRA-VERSION': sfraVersion,
+        'SFRA-COMPATIBILITY-VERSION': compatibilityMode,
+        'CURRENT-WORLDPAY-CARTRIDGE-VERSION': currentCartrideVersion,
+        'WORLDPAY-CARTRIDGE-VERSION-USED-TILL-DATE': cVersion,
+        'UPGRADE-DATES': previousUpgradeDates
+    };
+    Logger.getLogger('worldpay').debug('requestHeader' + JSON.stringify(requestHeader));
+    var responseObject = Utils.serviceCallWithURL(requestHeader, worldpayConstants.PAYMENT_SERVICE_ID, voidSaleUrl, 'POST');
+    var handleResult = serviceResponseHandler.validateServiceResponse(responseObject);
+    if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+        return handleResult;
+    }
+    result = responseObject.object;
+    parsedResponse = Utils.parseResponse(result);
+    var maskedResponse = Utils.getLoggableRequestAWP(result);
+    Logger.getLogger('worldpay').debug('ACH Pay Void sale service Inquiry Token Response string : ' + maskedResponse);
 
     return {
         success: true,
@@ -543,5 +922,11 @@ module.exports = {
     ccVerifiedTokenRequestServiceAWP: ccVerifiedTokenRequestServiceAWP,
     webCSDKAuth: webCSDKAuth,
     enquireToken: enquireToken,
-    updateToken: updateToken
+    updateToken: updateToken,
+    updateTokenDetails: updateTokenDetails,
+    ccVerifiedTokenRequestServiceAWPDirect: ccVerifiedTokenRequestServiceAWPDirect,
+    webCSDKCVVCheckoutAuth: webCSDKCVVCheckoutAuth,
+    validateOrderExemption: validateOrderExemption,
+    achpayServiceWrapper: achpayServiceWrapper,
+    voidSaleService: voidSaleService
 };
