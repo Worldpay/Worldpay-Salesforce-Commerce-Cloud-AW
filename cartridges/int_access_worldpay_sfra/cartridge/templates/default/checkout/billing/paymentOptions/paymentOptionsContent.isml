@@ -1,6 +1,30 @@
-<div id="billing-user-content">
-    <isinclude template="checkout/billing/paymentOptions/billingUserContent" />
+<div id="payment-head-content">
+    <isinclude template="checkout/billing/paymentOptions/paymentHead" />
 </div>
+
+<iscomment>
+    Contact Info (Phone)
+</iscomment>
+<isset name="contactInfoFields" value="${pdict.forms.billingForm.contactInfoFields}" scope="page" />
+<fieldset class="contact-info-block">
+    <div id="billing-user-content">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="form-group
+                    <isif condition=${contactInfoFields.phone.mandatory === true}>required</isif>
+                    ${contactInfoFields.phone.htmlName}">
+                    <label class="form-control-label" for="phoneNumber">${resources.phoneLabel}</label>
+                    <input type="number" class="form-control phone" id="phoneNumber"
+                        value="${pdict.order.billing.billingAddress.address
+                        ? pdict.order.billing.billingAddress.address.phone||''
+                        : ''}" <isprint value=${pdict.forms.billingForm.contactInfoFields.phone.attributes} encoding="off"/>
+                        aria-describedby="phoneInvalidMessage" >
+                    <div class="invalid-feedback" id="phoneInvalidMessage"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</fieldset>
 
 <isloop items="${pdict.order.billing.payment.applicablePaymentMethods}" var="paymentOption" status="loopSate">
     <isif condition="${paymentOption.ID === 'CREDIT_CARD'}">
@@ -13,5 +37,7 @@
         <isinclude template="checkout/billing/paymentOptions/gpayContent" />
      <iselseif condition="${paymentOption.ID === 'DW_APPLE_PAY'}">
         <isinclude template="checkout/billing/paymentOptions/applePayContent" />
+     <iselseif condition="${paymentOption.ID === 'ACH_DIRECT_DEBIT-SSL'}"/>
+        <isinclude template="checkout/billing/paymentOptions/achPayContent" />
     </isif>
 </isloop>

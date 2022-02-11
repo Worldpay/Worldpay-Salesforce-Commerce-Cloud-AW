@@ -5,9 +5,10 @@
             assets.addCss('/css/account/payment.css');
             assets.addCss('/css/worldpay.css');
             assets.addCss('/css/webCSDK.css');
+            var utils = require('*/cartridge/scripts/common/utils.js');
     </isscript>
     <div class="hero slant-down account-image">
-        <h1 class="page-title">${Resource.msg('page.heading.payments', 'payment', null)}</h1>
+        <h1 class="page-title">${utils.getConfiguredLabel('page.heading.payments', 'payment')}</h1>
     </div>
     <div class="container">
 
@@ -20,9 +21,9 @@
                 <div class="card">
                     <div class="card-header">
                         <isif condition="${pdict.UUID}">
-                            <h4>${Resource.msg('label.payment.editpayment', 'payment', null)}</h4>
+                            <h4>${utils.getConfiguredLabel('label.payment.editpayment', 'payment')}</h4>
                         <iselse/>
-                            <h4>${Resource.msg('label.payment.addnewpayment', 'payment', null)}</h4>
+                            <h4>${utils.getConfiguredLabel('label.payment.addnewpayment', 'payment')}</h4>
                         </isif>
                     </div>
                     <div class="card-body">

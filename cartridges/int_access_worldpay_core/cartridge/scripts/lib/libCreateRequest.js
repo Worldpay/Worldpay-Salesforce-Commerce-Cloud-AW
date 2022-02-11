@@ -7,10 +7,11 @@
 *
 /*********************************************************************************/
 var Logger = require('dw/system/Logger');
-var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
-var CreateRequestHelper = require('*/cartridge/scripts/common/createRequestHelper.js');
-var InstructionHelper = require('*/cartridge/scripts/common/instructionHelper');
+var createRequestHelper = require('*/cartridge/scripts/common/createRequestHelper.js');
+var instructionHelper = require('*/cartridge/scripts/common/instructionHelper');
+var Site = require('dw/system/Site');
+var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 
 /**
  * This function to create the initial request json for Credit card Authorization AWP
@@ -32,21 +33,28 @@ function createInitialRequestCcAwp(
     var threedsAuthData = authentication3ds;
     var order = {};
     order.transactionReference = orderNumber;
-    order.merchant = CreateRequestHelper.getMerchantEntity();
+    order.merchant = createRequestHelper.getMerchantEntity();
     var options = {
-        ccType: { tokenType: 'card/token', plainType: 'card/plain' },
-        cvn: cvn
+        ccType: { tokenType: 'card/token', plainType: 'card/plain' }
     };
-    order.instruction = InstructionHelper.getInstruction(
+    if (cvn && cvn !== 'undefined') {
+        options.cvn = cvn;
+    }
+    order.instruction = instructionHelper.getInstruction(
         orderObj,
         preferences,
         paymentInstrument,
         options
     );
 
+    if (session.privacy.riskProfile !== null || threedsAuthData) {
+        order.customer = {};
+    }
+    if (session.privacy.riskProfile !== null) {
+        order.customer.riskProfile = session.privacy.riskProfile;
+    }
     if (threedsAuthData) {
         threedsAuthData.type = '3DS';
-        order.customer = {};
         order.customer.authentication = threedsAuthData;
     }
 
@@ -65,12 +73,12 @@ function createIntelligentTokenRequestCcAwp(paymentInstrument, customer) {
     var options = {
         ccType: { plainType: 'card/plain' }
     };
-    tokenRequest.paymentInstrument = CreateRequestHelper.getCCDetailsMyAccount(
+    tokenRequest.paymentInstrument = createRequestHelper.getCCDetailsMyAccount(
         paymentInstrument,
         options
     );
     tokenRequest.merchant = {
-        entity: 'default'
+        entity: Site.current.getCustomPreferenceValue('merchantEntity')
     };
     tokenRequest.verificationCurrency = session.getCurrency().getCurrencyCode();
     tokenRequest.namespace = customer.getProfile().getCustomerNo();
@@ -94,13 +102,13 @@ function createTokenRequestCcAwp(orderObj, paymentInstrument) {
     var options = {
         ccType: { plainType: 'card/front' }
     };
-    tokenRequest.paymentInstrument = CreateRequestHelper.getCCDetails(
+    tokenRequest.paymentInstrument = createRequestHelper.getCCDetails(
         paymentInstrument,
         options
     );
 
     if (orderObj) {
-        tokenRequest.paymentInstrument.billingAddress = CreateRequestHelper.getBillingAddress(
+        tokenRequest.paymentInstrument.billingAddress = createRequestHelper.getBillingAddress(
             orderObj
         );
     }
@@ -123,17 +131,13 @@ function createTokenRequestCcAwp(orderObj, paymentInstrument) {
  */
 function createJWTRequest(order, paymentInstrument, preferences) {
     var orderNumber = order.getOrderNo();
-    var creditCardHolder = paymentInstrument.creditCardHolder.toString();
-    var ccNumber = paymentInstrument.creditCardNumber.toString();
-    var ccExpM = paymentInstrument.creditCardExpirationMonth;
-    var ccExpY = paymentInstrument.creditCardExpirationYear;
     var JWTRequest = {};
     JWTRequest.transactionReference = orderNumber;
-    JWTRequest.merchant = CreateRequestHelper.getMerchantEntity();
+    JWTRequest.merchant = createRequestHelper.getMerchantEntity();
     var options = {
         ccType: { tokenType: 'card/tokenized', plainType: 'card/front' }
     };
-    JWTRequest.paymentInstrument = CreateRequestHelper.getCCDetails(
+    JWTRequest.paymentInstrument = createRequestHelper.getCCDetails(
         paymentInstrument,
         options
     );
@@ -152,11 +156,11 @@ function createJWTRequestForWCSDK(order, paymentInstrument, preferences) {
     var orderNumber = order.getOrderNo();
     var JWTRequestWCSDK = {};
     JWTRequestWCSDK.transactionReference = orderNumber;
-    JWTRequestWCSDK.merchant = CreateRequestHelper.getMerchantEntity();
+    JWTRequestWCSDK.merchant = createRequestHelper.getMerchantEntity();
     var options = {
         ccType: { tokenType: 'card/tokenized' }
     };
-    JWTRequestWCSDK.paymentInstrument = CreateRequestHelper.getPaymentDetailsForJWT(
+    JWTRequestWCSDK.paymentInstrument = createRequestHelper.getPaymentDetailsForJWT(
         paymentInstrument,
         options
     );
@@ -175,24 +179,24 @@ function create3DsRequest(orderObj, paymentInstrument, preferences, sessionID) {
     var orderNumber = orderObj.orderNo.toString();
     var order = {};
     order.transactionReference = orderNumber;
-    order.merchant = CreateRequestHelper.getMerchantEntity();
+    order.merchant = createRequestHelper.getMerchantEntity();
     order.instruction = {};
     var options = {
         ccType: { tokenType: 'card/tokenized', plainType: 'card/front' },
         excludeNarrative: true
     };
-    order.instruction = InstructionHelper.getInstruction(
+    order.instruction = instructionHelper.getInstruction(
         orderObj,
         preferences,
         paymentInstrument,
         options
     );
 
-    order.deviceData = CreateRequestHelper.getDeviceData(sessionID);
-    order.challenge = CreateRequestHelper.getChallengeDetails(preferences);
+    order.deviceData = createRequestHelper.getDeviceData(sessionID);
+    order.challenge = createRequestHelper.getChallengeDetails(preferences);
 
     if (preferences.includeRiskData) {
-        order.riskData = CreateRequestHelper.getRiskData(orderObj);
+        order.riskData = createRequestHelper.getRiskData(orderObj);
     }
     return order;
 }
@@ -208,24 +212,24 @@ function create3DsRequestWCSDK(orderObj, paymentInstrument, preferences, session
     var orderNumber = orderObj.orderNo.toString();
     var order = {};
     order.transactionReference = orderNumber;
-    order.merchant = CreateRequestHelper.getMerchantEntity();
+    order.merchant = createRequestHelper.getMerchantEntity();
     order.instruction = {};
     var options = {
         type: 'card/tokenized',
         excludeNarrative: true
     };
-    order.instruction = InstructionHelper.getInstructionForWCSDK(
+    order.instruction = instructionHelper.getInstructionForWCSDK(
         orderObj,
         preferences,
         paymentInstrument,
         options
     );
 
-    order.deviceData = CreateRequestHelper.getDeviceData(sessionID);
-    order.challenge = CreateRequestHelper.getChallengeDetails(preferences);
+    order.deviceData = createRequestHelper.getDeviceData(sessionID);
+    order.challenge = createRequestHelper.getChallengeDetails(preferences);
 
     if (preferences.includeRiskData) {
-        order.riskData = CreateRequestHelper.getRiskData(orderObj);
+        order.riskData = createRequestHelper.getRiskData(orderObj);
     }
     return order;
 }
@@ -239,7 +243,7 @@ function create3DsRequestWCSDK(orderObj, paymentInstrument, preferences, session
 function create3DsVerificationRequest(orderNo, reference3ds) {
     var request = {};
     request.transactionReference = orderNo;
-    request.merchant = CreateRequestHelper.getMerchantEntity();
+    request.merchant = createRequestHelper.getMerchantEntity();
     request.challenge = {};
     request.challenge.reference = reference3ds;
     return request;
@@ -257,12 +261,12 @@ function createAuthRequestGpay(orderObj, paymentInstrument, preferences) {
     var orderNumber = orderObj.orderNo.toString();
     var order = {};
     order.transactionReference = orderNumber;
-    order.merchant = CreateRequestHelper.getMerchantEntity();
+    order.merchant = createRequestHelper.getMerchantEntity();
     var options = {
         type: 'card/wallet+googlepay'
     };
     order.instruction = {};
-    order.instruction = InstructionHelper.getInstruction(
+    order.instruction = instructionHelper.getInstruction(
         orderObj,
         preferences,
         paymentInstrument,
@@ -299,11 +303,43 @@ function createInitialRequestPartialActions(amount, currency) {
 function createVerifiedTokenRequestCcAwp(sessionState, wsdkname, customerObject) {
     var verifiedtokenRequest = {};
     verifiedtokenRequest.description = Resource.msg('webcsdk.verifiedtoken.description', 'worldpay', null);
-    verifiedtokenRequest.paymentInstrument = CreateRequestHelper.getWebSdkDetails(sessionState, wsdkname);
+    verifiedtokenRequest.paymentInstrument = createRequestHelper.getWebSdkDetails(sessionState, wsdkname);
     verifiedtokenRequest.paymentInstrument.type = 'card/checkout';
-    verifiedtokenRequest.merchant = CreateRequestHelper.getMerchantEntity();
+    verifiedtokenRequest.merchant = createRequestHelper.getMerchantEntity();
     verifiedtokenRequest.verificationCurrency = session.getCurrency().getCurrencyCode();
     if (customerObject && customerObject.authenticated) {
+        verifiedtokenRequest.namespace = customerObject.getProfile().getCustomerNo();
+    } else {
+        verifiedtokenRequest.namespace = new Date().getTime().toString();
+    }
+    return verifiedtokenRequest;
+}
+/**
+ * @param {string} cardHoldername The card holder name
+ * @param {Object} customerObject Customer Details
+ * @param {string} cvn Security Number
+ * @param {Object} pi Payment Instrument
+ * @returns {Object} verifiedtokenRequest
+ */
+function createVerifiedTokenRequestCcAwpDirect(cardHoldername, customerObject, cvn, pi) {
+    var verifiedtokenRequest = {};
+    verifiedtokenRequest.description = Resource.msg('webcsdk.verifiedtoken.description', 'worldpay', null);
+    var ccObj = {
+        type: 'card/plain',
+        cardHolderName: cardHoldername,
+        cardNumber: pi.creditCardNumber.toString(),
+        cardExpiryDate: {
+            month: pi.creditCardExpirationMonth,
+            year: pi.creditCardExpirationYear
+        }
+    };
+    if (cvn) {
+        ccObj.cvc = cvn;
+    }
+    verifiedtokenRequest.paymentInstrument = ccObj;
+    verifiedtokenRequest.merchant = createRequestHelper.getMerchantEntity();
+    verifiedtokenRequest.verificationCurrency = session.getCurrency().getCurrencyCode();
+    if (customerObject && customerObject.authenticated && pi.custom.wpTokenRequested) {
         verifiedtokenRequest.namespace = customerObject.getProfile().getCustomerNo();
     } else {
         verifiedtokenRequest.namespace = new Date().getTime().toString();
@@ -324,19 +360,60 @@ function createAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authen
     var threedsAuthData = authentication3ds;
     var order = {};
     order.transactionReference = orderNumber;
-    order.merchant = CreateRequestHelper.getMerchantEntity();
+    order.merchant = createRequestHelper.getMerchantEntity();
     var options = {
         type: 'card/token'
     };
-    order.instruction = InstructionHelper.getInstructionForWCSDK(
+    order.instruction = instructionHelper.getInstructionForWCSDK(
             orderObj,
             preferences,
             paymentInstrument,
             options
         );
+    if (threedsAuthData || session.privacy.riskProfile !== null) {
+        order.customer = {};
+    }
+    if (session.privacy.riskProfile !== null) {
+        order.customer.riskProfile = session.privacy.riskProfile;
+    }
     if (threedsAuthData) {
         threedsAuthData.type = '3DS';
+        order.customer.authentication = threedsAuthData;
+    }
+    return order;
+}
+
+/**
+ * This function to create the request for CVV checkout Authorization using verifiedToken and the cvv href
+ * @param {dw.order.Order} orderObj - Current users's Order
+ *  @param {dw.order.PaymentInstrument} paymentInstrument - payment instrument object
+ *  @param {Object} preferences - worldpay preferences
+ *  @param {Object} authentication3ds - 3ds authentication response data
+ * @return {Object} returns an JSON object
+ */
+function createCVVAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authentication3ds) {
+    var orderNumber = orderObj.orderNo.toString();
+    var threedsAuthData = authentication3ds;
+    var order = {};
+    order.transactionReference = orderNumber;
+    order.merchant = createRequestHelper.getMerchantEntity();
+    var options = {
+        type: 'card/checkout'
+    };
+    order.instruction = instructionHelper.getInstructionForWCSDK(
+            orderObj,
+            preferences,
+            paymentInstrument,
+            options
+        );
+    if (threedsAuthData || session.privacy.riskProfile !== null) {
         order.customer = {};
+    }
+    if (session.privacy.riskProfile !== null) {
+        order.customer.riskProfile = session.privacy.riskProfile;
+    }
+    if (threedsAuthData) {
+        threedsAuthData.type = '3DS';
         order.customer.authentication = threedsAuthData;
     }
     return order;
@@ -349,7 +426,6 @@ function createAuthRequestWCSDK(orderObj, paymentInstrument, preferences, authen
 * @returns {Object} requestXML - auth request XML
 */
 function createApplePayAuthRequest(order, event) {
-    var Utils = require('*/cartridge/scripts/common/utils');
     var WorldpayPreferences = require('*/cartridge/scripts/object/worldpayPreferences');
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
@@ -371,11 +447,11 @@ function createApplePayAuthRequest(order, event) {
     var reqJson = {
         transactionReference: orderNo,
         merchant: {
-            entity: WorldpayConstants.MERCHANT_ENTITY
+            entity: Site.current.getCustomPreferenceValue('merchantEntity')
         },
         instruction: {
             narrative: {
-                line1: order.orderNo
+                line1: Site.current.getCustomPreferenceValue('narrativeLine1')
             },
             value: {
                 currency: order.currencyCode,
@@ -388,6 +464,115 @@ function createApplePayAuthRequest(order, event) {
         }
     };
     return reqJson;
+}
+
+/**
+ * @param {Object} orderObj - Order object
+ * @param {Object} paymentInstrument - credit card paymentinstrument
+ * @param {Object} preferences - worldpay preferences
+ * @param {string} tokenUrl - verified token url
+ * @returns {Object} order request
+ */
+function createOrderExemptionRequest(orderObj, paymentInstrument, preferences) {
+    var orderNumber = orderObj.orderNo.toString();
+    var order = {};
+    var amount = orderObj.totalGrossPrice.value;
+    amount = (amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
+    order.transactionReference = orderNumber;
+    order.merchant = createRequestHelper.getMerchantEntity();
+    order.instruction = {};
+    order.riskData = {};
+    order.riskData.shipping = {};
+    var ccObj = {
+        type: 'card/tokenized',
+        href: session.privacy.verfiedToken
+    };
+    order.instruction.paymentInstrument = ccObj;
+    var value = {
+        currency: orderObj.currencyCode,
+        amount: Number(amount)
+    };
+    order.instruction.value = value;
+    var account = {
+        email: orderObj.customerEmail
+    };
+    order.riskData.account = account;
+    var transaction = {
+        firstName: orderObj.customer.profile.firstName,
+        lastName: orderObj.customer.profile.lastName,
+        phoneNumber: orderObj.customer.profile.phoneHome
+    };
+    order.riskData.transaction = transaction;
+    order.riskData.shipping.firstName = orderObj.customer.profile.firstName;
+    order.riskData.shipping.lastName = orderObj.customer.profile.lastName;
+    var shippingAddress = {
+        address1: orderObj.shipments[0].shippingAddress.address1,
+        address2: orderObj.shipments[0].shippingAddress.address2,
+        postalCode: orderObj.shipments[0].shippingAddress.postalCode,
+        city: orderObj.shipments[0].shippingAddress.city,
+        countryCode: orderObj.shipments[0].shippingAddress.countryCode.value,
+        phoneNumber: orderObj.customer.profile.phoneHome
+    };
+    order.riskData.shipping.address = shippingAddress;
+    return order;
+}
+
+/**
+ * Create the auth payment request for ach pay
+ * @param {Object} orderObj - Order object
+ * @param {Object} paymentInstrument - credit card paymentinstrument
+ * @param {Object} preferences - worldpay preferences
+ * @returns {Object} order request
+ */
+function createRequestACHPay(orderObj, paymentInstrument, preferences) {
+    var orderNumber = orderObj.orderNo.toString();
+    var order = {};
+    var amount = orderObj.totalGrossPrice.value;
+    amount = (amount.toFixed(2) * (Math.pow(10, preferences.currencyExponent))).toFixed(0);
+    order.transactionReference = orderNumber;
+    order.merchant = createRequestHelper.getMerchantEntity();
+    order.instruction = {};
+    var narrative = {
+        line1: Site.current.getCustomPreferenceValue('narrativeLine1')
+    };
+    order.instruction.narrative = narrative;
+    var options = {
+        type: worldpayConstants.BANKACCOUNTS_US
+    };
+    let accountType = paymentInstrument.custom.achAccountType.toString().toLowerCase();
+    let achCompanyName;
+    if (accountType === worldpayConstants.CORPORATE || accountType === worldpayConstants.CORPSAVINGS) {
+        achCompanyName = paymentInstrument.custom.achCompanyName;
+    }
+    var AchObj = {
+        type: options.type,
+        accountType: accountType === worldpayConstants.CORPSAVINGS ? worldpayConstants.CORPORATESAVINGS : accountType,
+        accountNumber: paymentInstrument.bankAccountNumber,
+        routingNumber: paymentInstrument.bankRoutingNumber,
+        checkNumber: paymentInstrument.custom.achCheckNumber
+    };
+    order.instruction.paymentInstrument = AchObj;
+    if (achCompanyName && achCompanyName !== '') {
+        order.instruction.paymentInstrument.companyName = achCompanyName;
+    }
+    var billingAddress = orderObj.getBillingAddress();
+    var achBillingAddress = {
+        firstName: orderObj.billingAddress.firstName,
+        lastName: orderObj.billingAddress.lastName,
+        address1: billingAddress.address1,
+        address2: billingAddress.address2,
+        postalCode: billingAddress.postalCode,
+        city: billingAddress.city,
+        state: billingAddress.stateCode,
+        countryCode: billingAddress.countryCode.value
+    };
+    order.instruction.paymentInstrument.billingAddress = achBillingAddress;
+    var value = {
+        currency: orderObj.currencyCode,
+        amount: Number(amount)
+    };
+    order.instruction.value = value;
+    return order;
 }
 
 /** Exported functions **/
@@ -404,5 +589,9 @@ module.exports = {
     createVerifiedTokenRequestCcAwp: createVerifiedTokenRequestCcAwp,
     createAuthRequestWCSDK: createAuthRequestWCSDK,
     create3DsRequestWCSDK: create3DsRequestWCSDK,
-    createApplePayAuthRequest: createApplePayAuthRequest
+    createApplePayAuthRequest: createApplePayAuthRequest,
+    createVerifiedTokenRequestCcAwpDirect: createVerifiedTokenRequestCcAwpDirect,
+    createCVVAuthRequestWCSDK: createCVVAuthRequestWCSDK,
+    createOrderExemptionRequest: createOrderExemptionRequest,
+    createRequestACHPay: createRequestACHPay
 };

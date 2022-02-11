@@ -5,20 +5,21 @@
     name="payment-form" ${pdict.paymentForm.attributes}>
   <isscript>
               assets.addCss('/css/worldpay.css');
+              var utils = require('*/cartridge/scripts/common/utils.js');
     </isscript>
     <!-- Credit Card Type -->
     <input type="hidden" class="form-control" id="cardType" value="" <isprint value="${pdict.paymentForm.cardType.attributes}" encoding="off" /> autocomplete="cc-type">
 <div id="novtokenerror">
-    ${Resource.msg('websdk.notoken.error', 'worldpay', null)}
+    ${utils.getConfiguredLabel('websdk.notoken.error', 'worldpay')}
 </div>
 <div id="tokenConflict">
-   ${Resource.msg('token.conflict.error', 'worldpay', null)}
+   ${utils.getConfiguredLabel('token.conflict.error', 'worldpay')}
 </div>
 <div id="wpservererror">
     ${Resource.msg('websdk.server.error', 'worldpay', null)}
 </div>
 <div id="updateLimitCrossed">
-    ${Resource.msg('token.updatelimit.crossed', 'worldpay', null)}
+    ${utils.getConfiguredLabel('token.updatelimit.crossed', 'worldpay')}
 </div>
     <div class="form-group custom-control custom-radio">
         <input
@@ -112,12 +113,12 @@
     </div>
 
     <input type="hidden" name="${pdict.csrf.tokenName}" value="${pdict.csrf.token}"/>
-	<div class ="wsdk-auth-msg-myAccount">
-		 <div id = "info-msg" >
+    <div class ="wsdk-auth-msg-myAccount">
+         <div id = "info-msg" >
              <small> ${Resource.msg('websdk.auth.messgae', 'worldpay', null)}</small>
              <br>
-		 </div>
-	</div>
+         </div>
+    </div>
     <!-- Cancel and Save Buttons -->
     <div class="row">
         <div class="col">

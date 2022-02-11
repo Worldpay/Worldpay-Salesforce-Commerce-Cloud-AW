@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom-objects xmlns="http://www.demandware.com/xml/impex/customobject/2006-10-31">
+    <custom-object type-id="ConfiguredLabels" object-id="error.invalid.card.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Invalid credit card number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="websdk.cvv.form.error">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Invalid CVV, please enter a valid CVV</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="token.updatelimit.crossed">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Maximum number of updates for this card exceeded. If you need to update these details delete the existing card from "my account" and save it again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="token.conflict.error">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Error while saving the card. The card is already saved in your account.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="error.message.creditexpiration.expired">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">The credit card has expired.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.ccchosetosave.msg">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Your card will be saved only when you choose yes option from disclaimer, else your card will not be saved</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="websdk.notoken.error">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Error while verifying your card with the bank. Please fill in correct details.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="error.invalid.security.code">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Invalid security code</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.generalerror">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please choose a different payment method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="error.message.creditnumber.invalid">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Credit card number invalid.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codecancelled">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment authorization fail, please try again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.code.3dsfailed">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment failed. Please update payment details again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.cartERROR">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment failed. Please choose a different payment method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.exemptionERROR">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Exemption assessment failed. Please choose a different payment method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codenarrativeERROR">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Invalid request. A narrative line must be between 1-24 characters and Narrative line may only contain alphanumeric characters, spaces, hyphens, commas and full stops. A forward slash is also allowed but may not be supported by some acquirers.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codeentityERROR">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Entity must be a valid value.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="error.expired.credit.card">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">This credit card has expired</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="msg.no.saved.payments">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">No saved payment instruments</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.saved.card.not.found">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Internal error occurred with the chosen saved card. Please reload the page and continue with checkout, or choose a different payment method.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="websdk.cvv.form.confirmed">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Thanks for confirming your CVV, please proceed to checkout</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codeservererror">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment can not be authorized at the moment , please try after some time.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.code.authenticationFailed">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment failed. Please choose a different payment method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codecancelled">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment authorization fail, please try again.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.error.codeERROR">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment failed. Please choose a different payment method or try again later.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.disclaimer.link">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Disclaimer</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.ccdisclaimer.msg">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please click on the disclaimer button to continue, and choose yes to save your card</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.ccchosetosave.msg">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Your card will be saved only when you choose yes option from disclaimer, else your card will not be saved</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.disclaimer.modalclose">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Close</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.googlepay.error">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please complete Google Pay by clicking on Google Pay button to proceed</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="heading.payment">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="heading.billing.address">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Billing Address</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="action.update.address">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Update Address</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="action.add.new">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Add New</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="msg.new.address">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">New Address</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.disclaimer.modaloptionyes">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Yes</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.disclaimer.modaloptionno">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">No</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="title.checkout">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Checkout</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="info.need.help">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Need Help? Call</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="info.phone.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">1-800-555-0199</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="heading.checkout.shipping">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Shipping</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="action.edit.step">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Edit</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.next.payment">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Next: Payment</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.next.payment.order">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Next: Review Order</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.place.order">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Place Order</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="heading.order.summary">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Order Summary</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="heading.checkout.customer">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Customer</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.add.payment">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Add Payment</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="button.back.to.stored.payments">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Back to Saved Payments</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.input.creditcard.owner">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Name on Card</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.credit.card.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Card Number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.worldpay.cards">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Preferred Card</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.credit.card.expiration.month">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Expiration Month</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.credit.card.expiration.year">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Expiration Year</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.credit.card.security.code">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Security Code</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.customer.email">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Email</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="field.customer.phone.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Phone Number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.email">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please enter a valid email address.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.phone.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">The phone number associated with this credit card.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.security.code">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please enter the security (CVV) code on the back of your card.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.payment.clickhere">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">click here</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.cardOwner">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please enter a valid card owner name.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.cardNumber">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please enter a valid card number.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.expirationMonth">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please choose card expiration month.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="tooltip.expirationYear">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please choose card expiration year.</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.payment.type.selectedmethod">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Payment By</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.payment.amount">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Amount</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.ach.account.type">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Account Type</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.ach.routing.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Routing Number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.ach.check.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Check Number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.ach.account.number">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Account Number</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="label.ach.company.name">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Company Name</object-attribute>
+    </custom-object>
+
+    <custom-object type-id="ConfiguredLabels" object-id="worldpay.achpay.error">
+        <object-attribute attribute-id="labelValue" xml:lang="x-default">Please enter company name</object-attribute>
+    </custom-object>
+</custom-objects>

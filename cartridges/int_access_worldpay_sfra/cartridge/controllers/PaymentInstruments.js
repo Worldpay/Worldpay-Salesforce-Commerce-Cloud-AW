@@ -85,6 +85,8 @@ server.prepend('SavePayment', csrfProtection.validateAjaxRequest, function (req,
 server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req, res) {
     var array = require('*/cartridge/scripts/util/array');
     var ServiceFacade = require('*/cartridge/scripts/service/serviceFacade');
+    var utils = require('*/cartridge/scripts/common/utils');
+    var Logger = require('dw/system/Logger');
 
     var data = res.getViewData();
     if (data && !data.loggedin) {
@@ -101,15 +103,18 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     res.setViewData(paymentToDelete);
     var CustomerMgr = require('dw/customer/CustomerMgr');
     var Transaction = require('dw/system/Transaction');
-    var Resource = require('dw/web/Resource');
     var payment = res.getViewData();
     var customer = CustomerMgr.getCustomerByCustomerNumber(
         req.currentCustomer.profile.customerNo
     );
     var wallet = customer.getProfile().getWallet();
     var cToken = payment.raw.custom.awpCCTokenData;
-    if (cToken && cToken !== 'undefined') {
-        ServiceFacade.deleteToken(cToken);
+    if (cToken && typeof cToken !== 'undefined') {
+        try {
+            ServiceFacade.deleteToken(cToken);
+        } catch (ex) {
+            Logger.getLogger('worldpay').error('Exception occurred while deleting a saved card:' + ex.message);
+        }
     }
     Transaction.wrap(function () {
         wallet.removePaymentInstrument(payment.raw);
@@ -117,7 +122,7 @@ server.prepend('DeletePayment', userLoggedIn.validateLoggedInAjax, function (req
     if (wallet.getPaymentInstruments().length === 0) {
         res.json({
             UUID: UUID,
-            message: Resource.msg('msg.no.saved.payments', 'payment', null)
+            message: utils.getConfiguredLabel('msg.no.saved.payments', 'payment')
         });
     } else {
         res.json({ UUID: UUID });

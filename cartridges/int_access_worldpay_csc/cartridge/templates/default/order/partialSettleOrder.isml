@@ -12,16 +12,16 @@
         <isif condition="${pdict.success}">
             <div class="dw-notify-success">
                 <div class="dw-body">
-                    <div class="dw-title">${Resource.msg('partialsettle.success','worldpaybm',null)}</div>
-                    <div class="dw-msg">${Resource.msg('partialsettle.success.message','worldpaybm',null)}</div>
+                    <div class="dw-title">${Resource.msg('partialsettle.success','worldpayBm',null)}</div>
+                    <div class="dw-msg">${Resource.msg('partialsettle.success.message','worldpayBm',null)}</div>
                 </div>
             </div>
             <br/>
             <iselse>
                 <div class="dw-notify-warning">
                     <div class="dw-body">
-                        <div class="dw-title">${Resource.msg('partialsettle.warning','worldpaybm',null)}</div>
-                        <div class="dw-msg">${Resource.msg('partialsettle.warning.message','worldpaybm',null)}</div>
+                        <div class="dw-title">${Resource.msg('partialsettle.warning','worldpayBm',null)}</div>
+                        <div class="dw-msg">${Resource.msg('partialsettle.warning.message','worldpayBm',null)}</div>
                     </div>
                 </div>
                 <br/>
@@ -44,14 +44,14 @@
                         <isif condition="${order.custom.awpPartialSettleUrl &&  (order.custom.WorldpayLastEvent ==='authorized' || order.custom.WorldpayLastEvent ==='sentForAuthorization' || order.custom.cscLastEvent ==='partiallysettled') && order.custom.cscLastEvent !=='sentForSettlement' && order.custom.cscLastEvent !=='cancelled' && order.custom.awpPartialSettleAmount < pdict.amount}" >
                             <input type="number" step="0.01" min ="0" id="settleAmount" name="settleAmount"><br><br>
                             <button class="dw-button dw-button-primary" type="submit">
-                                <span>${Resource.msg('partialsettle.order','worldpaybm',null)}</span>
+                                <span>${Resource.msg('partialsettle.order','worldpayBm',null)}</span>
                             </button>
                             <br/>
                             <iselse>
                                 <isif condition="${!pdict.success}">
                                     <div class="dw-notify-warning">
                                         <div class="dw-body">
-                                            <div class="dw-msg"> ${Resource.msg('nopartialsettle.order','worldpaybm',null)} </div>
+                                            <div class="dw-msg"> ${Resource.msg('nopartialsettle.order','worldpayBm',null)} </div>
                                         </div>
                                     </div>
                                 </isif>

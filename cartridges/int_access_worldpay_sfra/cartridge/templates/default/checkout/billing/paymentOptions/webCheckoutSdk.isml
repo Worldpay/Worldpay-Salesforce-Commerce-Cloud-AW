@@ -7,8 +7,11 @@
    cursor: pointer;
    }
 </style>
+<isscript>
+        var utils = require('*/cartridge/scripts/common/utils.js');
+</isscript>
 <div id="vtokensuccess">
-    <p>${Resource.msg('webcsdk.verifiedtoken.success.message', 'worldpay', null)}</p>
+    <p>${utils.getConfiguredLabel('webcsdk.verifiedtoken.success.message', 'worldpay')}</p>
 </div>
 
 <div class="row change-payment">
@@ -41,12 +44,12 @@
             <section id="card-cvv" class="field websdkInput"></section>
          </div>
      </div>
-	<div class ="wsdk-auth-msg">
-		 <div id = "info-msg" >
+    <div class ="wsdk-auth-msg">
+         <div id = "info-msg" >
              <small> ${Resource.msg('websdk.auth.messgae', 'worldpay', null)}</small>
-		 </div>
-	</div>
-	  <button id="clear_form_worldpay" class="clear_form_worldpay hide">Clear</button>
+         </div>
+    </div>
+      <button id="clear_form_worldpay" class="clear_form_worldpay hide">Clear</button>
       <button class="submit wsdkpaynow" type="submit" >${Resource.msg('websdk.form.button.paynow', 'worldpay', null)}</button>
    </form>
 </section>
@@ -65,13 +68,13 @@
 <input type="hidden" name="billingFields" value="${pdict.forms.billingForm.attributes}" />
 <input id="isvtokenavailable" type="hidden" name="isvtokenavailable" value="" />
 <div id="novtokenerror">
-    ${Resource.msg('websdk.notoken.error', 'worldpay', null)}
+    ${utils.getConfiguredLabel('websdk.notoken.error', 'worldpay')}
 </div>
 <div id="wpservererror">
     ${Resource.msg('websdk.server.error', 'worldpay', null)}
 </div>
 <div id="updateLimitCrossed">
-    <span>${Resource.msg('token.updatelimit.crossed', 'worldpay', null)}</span>
+    <span>${utils.getConfiguredLabel('token.updatelimit.crossed', 'worldpay')}</span>
 </div>
 <isif condition="${'webCSDKScript' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.
            webCSDKScript != ''}">

@@ -2,54 +2,11 @@
 'use strict';
 
 var Status = require('dw/system/Status');
-var server = require('server');
 var Transaction = require('dw/system/Transaction');
-var Logger = require('dw/system/Logger');
-
-/**
- *
- * @param {Object} authResponse - authorization response
- * @returns {boolean} - status
- */
-function handleAuthResponse(authResponse) {
-    var Utils = require('*/cartridge/scripts/common/utils');
-    if (!authResponse) {
-        return true;
-    }
-    var result = authResponse.object;
-    var parsedResponse = Utils.parseResponse(result);
-    if (parsedResponse && parsedResponse.isError()) {
-        return true;
-    }
-    if ('status' in authResponse && authResponse.getStatus().equals('SERVICE_UNAVAILABLE')) {
-        return true;
-    }
-    return false;
-}
-
-/**
- *
- * @param {Address} responseAddress - Address from applepay response
- * @param {string} addressType - form name
- */
-function setAddress(responseAddress, addressType) {
-    var form = server.forms.getForm(addressType);
-    var addressObject = {
-        firstName: responseAddress.givenName,
-        lastName: responseAddress.lastName,
-        address1: responseAddress.addressLines[0],
-        address2: responseAddress.addressLines[1] ? responseAddress.addressLines[1] : '',
-        city: responseAddress.locality,
-        stateCode: responseAddress.administrativeArea,
-        postalCode: responseAddress.postalCode,
-        country: responseAddress.countryCode,
-        phone: responseAddress.phoneNumber
-    };
-    form.copyFrom(addressObject);
-}
-
+var applePayHelpers = require('*/cartridge/scripts/checkout/applePayHelpers');
 
 exports.authorizeOrderPayment = function (order, responseData) {
+    var Logger = require('dw/system/Logger');
     var LibCreateRequest = require('*/cartridge/scripts/lib/libCreateRequest');
     var ApplePayHookResult = require('dw/extensions/applepay/ApplePayHookResult');
     var Utils = require('*/cartridge/scripts/common/utils');
@@ -58,19 +15,26 @@ exports.authorizeOrderPayment = function (order, responseData) {
     var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
     var worldPayPreferences = new WorldpayPreferences();
     var preferences = worldPayPreferences.worldPayPreferencesInit();
+    var Site = require('dw/system/Site');
+    var skipStateCodeValidation = Site.getCurrent().getCustomPreferenceValue('skipStateCodeAddressValidation');
+    var URLUtils = require('dw/web/URLUtils');
+    var serviceResponseHandler = require('*/cartridge/scripts/service/serviceResponseHandler');
 
     var error = new Status(Status.ERROR);
     var success = new Status(Status.OK);
-    if (responseData.payment && (!responseData.payment.billingContact.countryCode ||
-        !responseData.payment.billingContact.administrativeArea ||
-        !responseData.payment.billingContact.postalCode ||
-        !responseData.payment.billingContact.locality)) {
+    var isBillingAddressError;
+    if (skipStateCodeValidation) {
+        isBillingAddressError = applePayHelpers.validateBillingFields(responseData);
+    } else {
+        isBillingAddressError = applePayHelpers.validateUSBillingFields(responseData);
+    }
+    if (isBillingAddressError.error) {
         error.addDetail(ApplePayHookResult.STATUS_REASON_DETAIL_KEY, ApplePayHookResult.REASON_BILLING_ADDRESS);
         return error;
     }
 
-    setAddress(responseData.payment.billingContact, 'billing');
-    setAddress(responseData.payment.shippingContact, 'shipping');
+    applePayHelpers.setAddress(responseData.payment.billingContact, 'billing');
+    applePayHelpers.setAddress(responseData.payment.shippingContact, 'shipping');
 
     var paymentMethod = require('dw/order/PaymentMgr').getPaymentMethod(paymentMethodID);
     Transaction.wrap(function () {
@@ -89,15 +53,28 @@ exports.authorizeOrderPayment = function (order, responseData) {
         var requestHeader = { 'Content-Type': 'application/vnd.worldpay.payments-v6+json' };
         var requestObject = LibCreateRequest.createApplePayAuthRequest(order, responseData);
         result = Utils.serviceCallAWP(requestObject, requestHeader, preferences, WorldpayConstants.PAYMENT_SERVICE_ID, preferences.getAPIEndpoint('payments', 'authorization'));
+        var handleResult = serviceResponseHandler.validateServiceResponse(result);
+        if (handleResult && Object.prototype.hasOwnProperty.call(handleResult, 'error') && handleResult.error) {
+            if (handleResult.errorCode === 'narrativeERROR') {
+                session.privacy.narrativeError = true;
+                Logger.getLogger('worldpay').error('Redirecting from applePayAuth.js to Cart-Show : error = narrativeERROR');
+                return URLUtils.url('Cart-Show', 'placeerror', 'narrativeERROR');
+            } else if (handleResult.errorCode === 'entityERROR') {
+                Logger.getLogger('worldpay').error('Redirecting from applePayAuth.js to Cart-Show : error = entityERROR');
+                return URLUtils.url('Cart-Show', 'placeerror', 'entityERROR');
+            } else if (handleResult.errorCode === 'cvvError') {
+                Logger.getLogger('worldpay').error('Redirecting from applePayAuth.js to Cart-Show : error = cvvError');
+                return URLUtils.url('Cart-Show', 'placeerror', 'cvvError');
+            }
+            Logger.getLogger('worldpay').error('Redirecting from applePayAuth.js to Cart-Show : error = cartError');
+            return URLUtils.url('Cart-Show', 'placeerror', 'cartError');
+        }
     }
-
-    var hasError = handleAuthResponse(result);
+    var hasError = applePayHelpers.handleAuthResponse(result);
 
     if (result && result.ok && !hasError) {
-        Logger.debug('Apple pay Response string : ' + result.object);
         var parsedResponse = Utils.parseResponse(result.object);
         var worldpayPayment = require('*/cartridge/scripts/order/worldpayPayment');
-        Logger.debug('Apple pay parsed Response string : ' + parsedResponse);
         worldpayPayment.setURLs(parsedResponse, order);
         return success;
     }
@@ -106,11 +83,16 @@ exports.authorizeOrderPayment = function (order, responseData) {
 exports.shippingContactSelected = function (basket, event) {
     var ApplePayHookResult = require('dw/extensions/applepay/ApplePayHookResult');
     var error = new Status(Status.ERROR);
+    var Site = require('dw/system/Site');
+    var skipStateCodeValidation = Site.getCurrent().getCustomPreferenceValue('skipStateCodeAddressValidation');
+    var hasShippingAddressError;
+    if (skipStateCodeValidation) {
+        hasShippingAddressError = applePayHelpers.validateShippingFields(event.shippingContact);
+    } else {
+        hasShippingAddressError = applePayHelpers.validateUSShippingFields(event.shippingContact);
+    }
     // validates the shipping address some mac devices allow address without country code
-    if (!event.shippingContact.countryCode ||
-        !event.shippingContact.administrativeArea ||
-        !event.shippingContact.postalCode ||
-        !event.shippingContact.locality) {
+    if (hasShippingAddressError.error) {
         error.addDetail(ApplePayHookResult.STATUS_REASON_DETAIL_KEY, ApplePayHookResult.REASON_SHIPPING_ADDRESS);
         return new ApplePayHookResult(error, null);
     }

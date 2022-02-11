@@ -3,6 +3,7 @@
 var WorldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
 var Resource = require('dw/web/Resource');
 var Site = require('dw/system/Site');
+var Logger = require('dw/system/Logger');
 
 /**
  * Return billing address object for the current order
@@ -36,8 +37,7 @@ function getCCDetails(paymentInstrument, options) {
     var isCvvDisabled = Site.getCurrent().getCustomPreferenceValue('isAWPCvvDisabled');
     if ('awpCCTokenData' in paymentInstrument.custom && paymentInstrument.custom.awpCCTokenExpiry && !empty(paymentInstrument.custom.awpCCTokenData) && paymentInstrument.custom.awpCCTokenExpiry.getTime() > new Date().getTime()) {
         tokenHref = paymentInstrument.custom.awpCCTokenData;
-        if (!isCvvDisabled) {
-            if (Object.prototype.hasOwnProperty.call(options, 'cvn')) {
+            if (Object.prototype.hasOwnProperty.call(options, 'cvn') && options.cvn) {
                 return {
                     type: options.ccType.tokenType,
                     href: tokenHref,
@@ -46,11 +46,7 @@ function getCCDetails(paymentInstrument, options) {
         return {
             type: options.ccType.tokenType,
             href: tokenHref
-        }; }
-    return {
-        type: options.ccType.tokenType,
-        href: tokenHref
-    };
+        }; 
     } else if ('awpCCTokenData' in paymentInstrument.custom && !empty(paymentInstrument.custom.awpCCTokenData)) {
             if (!isCvvDisabled && options.cvn){
             return {
@@ -66,15 +62,22 @@ function getCCDetails(paymentInstrument, options) {
     } else {
         var cardHolderName = (isMagicValuesEnabled) ? paymentInstrument.creditCardHolder.toString() :
             paymentInstrument.creditCardHolder.toString().toUpperCase();
-        var ccObj = {
-            type: options.ccType.plainType,
-            cardHolderName: cardHolderName,
-            cardNumber: paymentInstrument.creditCardNumber.toString(),
-            cardExpiryDate: {
-                month: paymentInstrument.creditCardExpirationMonth,
-                year: paymentInstrument.creditCardExpirationYear
-            }
-        };
+        var ccObj = {};
+        
+        if (session.privacy.verfiedToken){
+            ccObj.type = options.ccType.tokenType;
+            ccObj.href = session.privacy.verfiedToken;
+        }
+        else {
+            ccObj.type = options.ccType.plainType;
+            ccObj.cardHolderName = cardHolderName;
+            ccObj.cardNumber = paymentInstrument.creditCardNumber.toString();
+            var cardExpiryDate = {
+                        month: paymentInstrument.creditCardExpirationMonth,
+                        year: paymentInstrument.creditCardExpirationYear
+                };
+            ccObj.cardExpiryDate = cardExpiryDate;
+        }
         if (!isCvvDisabled) {
             if (Object.prototype.hasOwnProperty.call(options, 'cvn')) {
                 ccObj.cvc = options.cvn;
@@ -116,7 +119,11 @@ function getCCDetailsMyAccount(paymentInstrument, options) {
  * @returns {Object} Merchant entity object
  */
 function getMerchantEntity() {
-    return { entity: WorldpayConstants.MERCHANT_ENTITY };
+    let entity = Site.current.getCustomPreferenceValue('merchantEntity');
+    if (entity) {
+        return { entity: entity };
+    }
+    Logger.getLogger('worldpay').error('Missing Merchant Entity in the preferences');
 }
 
 /**
@@ -125,7 +132,7 @@ function getMerchantEntity() {
  * @returns {Object} device data object
  */
 function getDeviceData(sessionID) {
-    var obj = {
+    let obj = {
         acceptHeader: 'text/html',
         userAgentHeader: request.getHttpUserAgent()
     };
@@ -179,7 +186,7 @@ function getRiskData(order) {
  * @returns {Object} WebCSDK details object
  */
 function getWebSdkDetails(sessionState, wsdkname) {
-    var ccObj = {
+    let ccObj = {
         cardHolderName: wsdkname
     };
     if (!empty(sessionState)) {
@@ -190,7 +197,7 @@ function getWebSdkDetails(sessionState, wsdkname) {
 
 function getPaymentDetailsForJWT(paymentInstrument, options) {
     if ('awpCCTokenData' in paymentInstrument.custom && !empty(paymentInstrument.custom.awpCCTokenData)) {
-        var tokenHref = paymentInstrument.custom.awpCCTokenData;
+        let tokenHref = paymentInstrument.custom.awpCCTokenData;
         return {
             type: options.ccType.tokenType,
             href: tokenHref

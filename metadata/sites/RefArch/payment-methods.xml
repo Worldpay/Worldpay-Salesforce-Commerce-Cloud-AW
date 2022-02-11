@@ -17,8 +17,20 @@
         <enabled-flag>true</enabled-flag>
         <processor-id>Worldpay</processor-id>
     </payment-method>
-	
-	<payment-card card-type="card/masked">
+
+	<payment-method method-id="ACH_DIRECT_DEBIT-SSL">
+        <name xml:lang="x-default">ACH Pay</name>
+        <enabled-flag>true</enabled-flag>
+        <processor-id>Worldpay</processor-id>
+        <countries>
+            <country country-code="US"/>
+        </countries>
+        <custom-attributes>
+            <custom-attribute attribute-id="type">DIRECT</custom-attribute>
+        </custom-attributes>
+    </payment-method>
+
+    <payment-card card-type="card/masked">
         <name xml:lang="x-default">card/masked</name>
         <enabled-flag>true</enabled-flag>
         <card-number-settings>

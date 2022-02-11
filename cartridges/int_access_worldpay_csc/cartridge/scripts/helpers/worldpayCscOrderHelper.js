@@ -12,13 +12,13 @@ var Logger = require('dw/system/Logger');
 function cancelOrder(orderNumber) {
     var result;
     var order = OrderMgr.getOrder(orderNumber);
-    if (order.custom.awpCancelUrl) {
-        var cancelUrl = order.custom.awpCancelUrl;
-        result = ServiceFacade.cscActions(cancelUrl);
-    }
     if (!order) {
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         return result;
+    }
+    if (order.custom.awpCancelUrl) {
+        var cancelUrl = order.custom.awpCancelUrl;
+        result = ServiceFacade.cscActions(cancelUrl);
     }
     Transaction.wrap(function () {
         order.custom.cscLastEvent = 'cancelled';
@@ -37,31 +37,32 @@ function settleOrder(orderNumber) {
     var Utils = require('*/cartridge/scripts/common/utils');
     var totalprice = Utils.calculateNonGiftCertificateAmount(order);
     var amount = totalprice.getValue();
-    if (order.custom.awpSettleUrl) {
-        var settleUrl = order.custom.awpSettleUrl;
-        result = ServiceFacade.cscActions(settleUrl);
-    }
     if (!order) {
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         return result;
     }
-    var serviceResponse = result.serviceresponse;
-    if (serviceResponse.refundUrl) {
+    if (order.custom.awpSettleUrl) {
+        var settleUrl = order.custom.awpSettleUrl;
+        result = ServiceFacade.cscActions(settleUrl);
+    }
+    if (result) {
+        var serviceResponse = result.serviceresponse;
+        if (serviceResponse && serviceResponse.refundUrl) {
+            Transaction.wrap(function () {
+                order.custom.awpRefundUrl = serviceResponse.refundUrl;
+            });
+        }
+        if (serviceResponse.partialRefundUrl) {
+            Transaction.wrap(function () {
+                order.custom.awpPartialRefundUrl = serviceResponse.partialRefundUrl;
+            });
+        }
+
         Transaction.wrap(function () {
-            order.custom.awpRefundUrl = serviceResponse.refundUrl;
+            order.custom.awpPartialSettleAmount = amount;
+            order.custom.cscLastEvent = 'sentForSettlement';
         });
     }
-    if (serviceResponse.partialRefundUrl) {
-        Transaction.wrap(function () {
-            order.custom.awpPartialRefundUrl = serviceResponse.partialRefundUrl;
-        });
-    }
-
-    Transaction.wrap(function () {
-        order.custom.awpPartialSettleAmount = amount;
-        order.custom.cscLastEvent = 'sentForSettlement';
-    });
-
     return result;
 }
 
@@ -76,13 +77,13 @@ function settleOrder(orderNumber) {
 function partialSettleOrder(orderNumber, settleAmount, partialSettleAmount, currency) {
     var result;
     var order = OrderMgr.getOrder(orderNumber);
-    if (order.custom.awpPartialSettleUrl) {
-        var partialSettleUrl = order.custom.awpPartialSettleUrl;
-        result = ServiceFacade.cscPartialActions(partialSettleUrl, orderNumber, settleAmount, currency);
-    }
     if (!order) {
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         return result;
+    }
+    if (order.custom.awpPartialSettleUrl) {
+        var partialSettleUrl = order.custom.awpPartialSettleUrl;
+        result = ServiceFacade.cscPartialActions(partialSettleUrl, orderNumber, settleAmount, currency);
     }
 
     if (result) {
@@ -139,28 +140,62 @@ function refundOrder(orderNumber) {
 function partialRefundOrder(orderNumber, settleAmount, partialRefundAmount, currency) {
     var result;
     var order = OrderMgr.getOrder(orderNumber);
-    if (order.custom.awpPartialRefundUrl) {
-        var awpPartialRefundUrl = order.custom.awpPartialRefundUrl;
-        result = ServiceFacade.cscPartialActions(awpPartialRefundUrl, orderNumber, settleAmount, currency);
-    }
     if (!order) {
         Logger.getLogger('worldpay').error('authorize : Invalid Order');
         return result;
     }
-    if (result.success) {
+    if (order.custom.awpPartialRefundUrl) {
+        var awpPartialRefundUrl = order.custom.awpPartialRefundUrl;
+        result = ServiceFacade.cscPartialActions(awpPartialRefundUrl, orderNumber, settleAmount, currency);
+    }
+    if (result && result.success) {
         Transaction.wrap(function () {
             order.custom.awpPartialRefundAmount = (partialRefundAmount + settleAmount) / 100;
             order.custom.cscLastEvent = 'PartiallyRefunded';
         });
     }
-
-
     return result;
+}
+/**
+* Helper function for void sale request
+* @param {string} orderNumber - order number
+* @return {Object} returns an result object
+*/
+function voidSale(orderNumber) {
+    var worldpayConstants = require('*/cartridge/scripts/common/worldpayConstants');
+    var result;
+    var order = OrderMgr.getOrder(orderNumber);
+    if (!order) {
+        Logger.getLogger('worldpay').error('void sale actions : Invalid Order');
+        return result;
+    }
+    result = ServiceFacade.voidSaleService(order);
+    if (result.success) {
+        Transaction.wrap(function () {
+            order.custom.WorldpayLastEvent = worldpayConstants.VOIDED;
+        });
+    }
+    return result;
+}
+/**
+* Helper function for finding the hour difference between order creation time and current time
+* @param {string} orderNumber - order number
+* @return {Object} returns an hourDifference object
+*/
+function getHourDifference(orderNumber) {
+    var orderCreationDate = OrderMgr.getOrder(orderNumber).creationDate;
+    var orderCreationHour = new Date(orderCreationDate).getTime();
+    var currentHour = new Date().getTime();
+    var hourDifference = (currentHour - orderCreationHour) / 1000;
+    hourDifference /= (60 * 60);
+    return hourDifference;
 }
 module.exports = {
     cancelOrder: cancelOrder,
     settleOrder: settleOrder,
     partialSettleOrder: partialSettleOrder,
     refundOrder: refundOrder,
-    partialRefundOrder: partialRefundOrder
+    partialRefundOrder: partialRefundOrder,
+    getHourDifference: getHourDifference,
+    voidSale: voidSale
 };

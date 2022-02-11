@@ -22,5 +22,27 @@
             </run-once>
         </triggers>
     </job>
+    <job job-id="WorldpayLastEventUpdatesJob" priority="0">
+        <description/>
+        <parameters/>
+        <flow>
+            <context site-id="RefArch"/>
+            <step step-id="WorldpayLastEventUpdatesJob" type="ExecuteScriptModule" enforce-restart="false">
+                <description/>
+                <parameters>
+                    <parameter name="ExecuteScriptModule.Module">int_access_worldpay_oms/cartridge/scripts/jobs/worldpayLastEventUpdatesJob.js</parameter>
+                    <parameter name="ExecuteScriptModule.FunctionName">updateWorldpayLastEvent</parameter>
+                    <parameter name="ExecuteScriptModule.Transactional">true</parameter>
+                </parameters>
+            </step>
+        </flow>
+        <rules/>
+        <triggers>
+            <run-once enabled="false">
+                <date>2021-12-15Z</date>
+                <time>21:20:52.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
 
 </jobs>

@@ -100,7 +100,7 @@ function orderNotificationUpdateJobAWP() {
                 renderingParameters.put('errorCount', errorCount);
                 renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
                 renderingParameters.put('errorString', errorString);
-                var template = new Util.Template('emailtemplateforjob.isml');
+                var template = new Util.Template('emailTemplateForJob.isml');
                 var content = template.render(renderingParameters);
                 var mail = new Net.Mail();
 

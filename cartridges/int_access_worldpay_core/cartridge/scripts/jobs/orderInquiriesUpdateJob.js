@@ -80,13 +80,13 @@ function orderInquiriesUpdate() {
                             // update the token details in customer account's saved card from service response only for Redirect
                             worldPayJobs.addOrUpdateToken(customerBasedOnEmail, serviceResponse, cardNumber, cardType);
                             // eslint-disable-next-line no-loop-func
-                            Transaction.wrap(function () {
-                                paymentInstr.custom.paymentCardAdded = true;
-                            });
+                            Transaction.begin();
+                            paymentInstr.custom.paymentCardAdded = true;
+                            Transaction.commit();
                         }
                         if (cardNumber && worldPayTokenRequested) {
                             // order updated with token details from service response, the payment instrument passed is of order. This will be called for both CC direct and Redirect
-                            paymentInstr = worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
+                            worldPayJobs.updateOrderToken(paymentInstr, serviceResponse);
                         } else {
                             continue;
                         }
@@ -117,7 +117,7 @@ function orderInquiriesUpdate() {
             renderingParameters.put('errorCount', errorCount);
             renderingParameters.put('filePath', writeToNotifyLogResult.filePath);
             renderingParameters.put('errorString', errorMessage);
-            var template = new Util.Template('emailtemplateforjob.isml');
+            var template = new Util.Template('emailTemplateForJob.isml');
             var content = template.render(renderingParameters);
             var mail = new Net.Mail();
 

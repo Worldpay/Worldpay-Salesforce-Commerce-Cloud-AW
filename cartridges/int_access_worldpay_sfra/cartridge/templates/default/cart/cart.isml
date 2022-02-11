@@ -1,0 +1,114 @@
+<isdecorate template="common/layout/page">
+    <isscript>
+        var assets = require('*/cartridge/scripts/assets.js');
+        assets.addCss('/css/cart.css');
+        var utils = require('*/cartridge/scripts/common/utils.js');
+    </isscript>
+    
+    <isif condition="${pdict.reportingURLs && pdict.reportingURLs.length}">
+        <isinclude template="reporting/reportingUrls" />
+    </isif>
+
+    <div class="cart-error-messaging cart-error">    
+        <isif condition="${pdict.valid.error && pdict.items.length !== 0}">
+            <div class="alert alert-danger alert-dismissible valid-cart-error fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                ${pdict.valid.message}
+            </div>
+        </isif>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">${Resource.msg('title.cart','cart',null)}</h1>
+        <div>
+            <isif condition="${pdict.queryString == 'placeerror=narrativeError'}" value=true> 
+                <div class="alert alert-danger">
+                    ${utils.getConfiguredLabel('worldpay.error.codenarrativeERROR', 'worldpayError')}
+                </div>
+            <iselseif condition="${pdict.queryString == 'placeerror=entityERROR'}" value=true> 
+                <div class="alert alert-danger">
+                    ${utils.getConfiguredLabel('worldpay.error.codeentityERROR', 'worldpayError')}
+                </div>
+            <iselseif condition="${pdict.queryString == 'placeerror=cvverror'}" value=true> 
+                <div class="alert alert-danger">
+                    ${utils.getConfiguredLabel('worldpay.error.codecvverror', 'worldpayError')}
+                </div>    
+            <iselseif condition="${pdict.queryString == 'cart-error=carterror'}" value=true>
+                <div class="alert alert-danger">
+                    ${utils.getConfiguredLabel('worldpay.error.cartERROR', 'worldpayError')}
+                </div>
+            </isif>
+        </div>
+        <div class="row cart-header">
+            <div class="col-sm-4 hidden-xs-down">
+                <a class="continue-shopping-link" href="${URLUtils.url('Home-Show')}" title="${Resource.msg('link.continue.shopping','cart',null)}">
+                    ${Resource.msg('link.continue.shopping','cart',null)}
+                </a>
+            </div>
+            <div class="col-sm-3 text-center">
+                <h2 class="number-of-items">${Resource.msgf('label.number.items.in.cart','cart', null, pdict.numItems)}</h2>
+            </div>
+            <div class="col-sm-5 text-right hidden-xs-down">
+                <div>
+                    <span>${utils.getConfiguredLabel('info.need.help','cart')}</span>
+                    <span><a class="help-phone-number" href="tel:${utils.getConfiguredLabel('info.phone.number','common')}">${utils.getConfiguredLabel('info.phone.number','common')}</a></span>
+                </div>
+            </div>
+        </div>
+        <hr class="no-margin-top">
+    </div>
+
+    <isif condition="${pdict.items.length === 0}">
+        <div class="container cart-empty">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1>${Resource.msg('info.cart.empty.msg','cart',null)}</h1>
+                </div>
+            </div>
+        </div>
+    <iselse/>
+        <div class="container cart cart-page">
+            <div class="row">
+                <!---product cards--->
+                <div class="col-sm-7 col-md-8">
+                    <isloop items="${pdict.items}" var="lineItem">
+                        <isif condition="${lineItem.productType === 'bundle'}">
+                            <isinclude template="cart/productCard/cartBundleCard" />
+                        <iselse/>
+                            <isif condition="${lineItem.noProduct === true}">
+                                <isinclude template="cart/productCard/uncategorizedCartProductCard" />
+                            <iselse/>
+                                <isinclude template="cart/productCard/cartProductCard" />
+                            </isif>
+                        </isif>
+                    </isloop>
+                    <isinclude template="cart/cartApproachingDiscount" />
+                </div>
+                <!---totals, and checkout actions--->
+                <div class="col-sm-5 col-md-4 totals">
+                    <isinclude template="cart/cartPromoCode" />
+                    <div class="coupons-and-promos">
+                        <isinclude template="cart/cartCouponDisplay" />
+                    </div>
+                    <div class="row">
+                        <isinclude template="cart/cartShippingMethodSelection" />
+                    </div>
+                    <isinclude template="cart/cartTotals" />
+                    <div class="row">
+                        <div class="col-12 checkout-continue">
+                            <isinclude template="cart/checkoutButtons" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <isinclude template="cart/cartRemoveProductModal"/>
+        </div>
+
+        <isinclude template="cart/cartRemoveCouponModal"/>
+    </isif>
+    <div class="container">
+        <isslot id="cart-recommendations-m" description="Recommended products" context="global" />
+    </div>
+</isdecorate>
